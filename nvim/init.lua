@@ -89,6 +89,15 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Show [D]iagnostic' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+-- Toggle quickfix list
+vim.keymap.set('n', '<leader>tq', function()
+  if vim.fn.getqflist({ winid = 0 }).winid ~= 0 then
+    vim.cmd 'cclose'
+  else
+    vim.cmd 'copen'
+  end
+end, { desc = '[T]oggle [Q]uickfix list' })
+
 -- Toggle virtual text
 vim.keymap.set('n', '<leader>tt', function()
   local config = vim.diagnostic.config()
