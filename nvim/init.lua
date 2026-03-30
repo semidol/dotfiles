@@ -407,7 +407,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
       vim.keymap.set('n', '<leader>p', function()
-        builtin.find_files { file_ignore_patterns = { '%.git/' }, hidden = true }
+        builtin.find_files { file_ignore_patterns = { '%.git/', 'lib/' }, hidden = true }
       end, { desc = 'Find files' })
 
       vim.keymap.set('n', '<leader>sp', function()
