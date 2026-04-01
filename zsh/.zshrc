@@ -148,6 +148,7 @@ export KEYTIMEOUT=1
 
 export PATH="/usr/local/opt/python/libexec/bin:$PATH"
 export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+export PATH="$HOME/utils:$PATH"
 
 # The next line updates PATH for CLI.
 if [ -f '/Users/s/yandex-cloud/path.bash.inc' ]; then source '/Users/s/yandex-cloud/path.bash.inc'; fi
