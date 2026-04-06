@@ -137,28 +137,75 @@ end, { desc = '[C]opy file path with line number' })
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- TypeScript compilation and error navigation
--- Configure makeprg for TypeScript files
+-- Configure makeprg per filetype
 vim.api.nvim_create_autocmd('FileType', {
   pattern = { 'typescript', 'typescriptreact' },
   callback = function()
-    -- Set makeprg to use tsc with specific format
     vim.opt_local.makeprg = 'npx tsc --noEmit --pretty false'
-
-    -- Set errorformat to parse TypeScript compiler output
     vim.opt_local.errorformat = '%f(%l\\,%c): %trror TS%n: %m,%f(%l\\,%c): %tarning TS%n: %m'
   end,
 })
 
--- Keymaps for TypeScript compilation and quickfix navigation
-vim.keymap.set('n', '<leader>tc', function()
-  print 'Compiling TypeScript project...'
+local function forge_build()
+  print 'Compiling Solidity...'
   vim.cmd 'redraw'
+
+  local raw = vim.fn.system 'forge build --json 2>&1'
+  local ok, decoded = pcall(vim.fn.json_decode, raw)
+
+  if not ok or type(decoded) ~= 'table' then
+    print 'Solidity: failed to parse forge output'
+    return
+  end
+
+  local errors = decoded.errors or {}
+  local qflist = {}
+
+  for _, err in ipairs(errors) do
+    if err.severity == 'error' or err.severity == 'warning' then
+      local file, lnum, col = err.formattedMessage:match '%-%-> ([^:]+):(%d+):(%d+)'
+
+      table.insert(qflist, {
+        filename = file,
+        lnum = tonumber(lnum),
+        col = tonumber(col),
+        text = err.message,
+        type = err.severity == 'error' and 'E' or 'W',
+      })
+    end
+  end
+
+  vim.fn.setqflist(qflist, 'r')
+
+  if #qflist == 0 then
+    print 'Solidity: no errors'
+  else
+    print('Solidity: ' .. #qflist .. ' error(s)')
+    vim.cmd 'copen'
+  end
+end
+
+-- Keymap for compilation and quickfix navigation (TypeScript and Solidity)
+vim.keymap.set('n', '<leader>b', function()
+  local ft = vim.bo.filetype
+
+  if ft == 'solidity' then
+    forge_build()
+    return
+  end
+
+  local labels = {
+    typescript = 'TypeScript',
+    typescriptreact = 'TypeScript',
+  }
+  local label = labels[ft] or 'Project'
+
+  print('Compiling ' .. label .. '...')
   vim.cmd 'silent make'
-  vim.cmd 'redraw!'
-  print 'TypeScript compilation complete!'
+  print(label .. ' compilation complete!')
   vim.cmd 'copen'
-end, { desc = '[T]ypeScript [C]ompile and show errors' })
---
+end, { desc = '[B]uild project and show errors' })
+
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
