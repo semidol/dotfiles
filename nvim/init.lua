@@ -105,6 +105,8 @@ vim.keymap.set('n', '<leader>tt', function()
 end, { desc = '[T]oggle virtual [T]ext' })
 
 vim.keymap.set('n', '<C-s>', ':w<CR>', { desc = 'Save file' })
+
+vim.cmd('iabbrev lclh http://127.0.0.1')
 vim.keymap.set('n', '<C-a>', 'ggVG', { desc = 'Select all' })
 vim.keymap.set('x', '<leader>p', '"-c<C-r>0<Esc>', { desc = 'Replace selection with last yank' })
 
