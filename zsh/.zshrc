@@ -170,3 +170,17 @@ bindkey -s '^[[24~' 'tmux-pick\n'
 
 bindkey '\e[1;3D' backward-word
 bindkey '\e[1;3C' forward-word
+
+_jl_filter() {
+  while IFS= read -r line; do
+    if echo "$line" | jq -e . >/dev/null 2>&1; then
+      echo "$line" | jq -C .
+    else
+      echo "$line"
+    fi
+  done
+}
+
+jl() {
+  "$@" 2>&1 | _jl_filter
+}
