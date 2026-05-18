@@ -120,12 +120,14 @@ automatically-unhide-macos-hidden-apps = false
     alt-d = 'workspace D'
     alt-f = 'workspace F'
     alt-s = 'workspace S'
+    alt-g = 'workspace G'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
     alt-shift-a = 'move-node-to-workspace A'
     alt-shift-d = 'move-node-to-workspace D'
     alt-shift-f = 'move-node-to-workspace F'
     alt-shift-s = 'move-node-to-workspace S'
+    alt-shift-g = 'move-node-to-workspace G'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'focus-back-and-forth'
