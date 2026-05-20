@@ -106,20 +106,12 @@ end, { desc = '[T]oggle virtual [T]ext' })
 
 vim.keymap.set('n', '<C-s>', ':w<CR>', { desc = 'Save file' })
 
-vim.cmd('iabbrev lclh http://127.0.0.1')
-vim.keymap.set('n', '<C-a>', 'ggVG', { desc = 'Select all' })
 vim.keymap.set('x', '<leader>p', '"-c<C-r>0<Esc>', { desc = 'Replace selection with last yank' })
 
 vim.keymap.set('c', '<M-Right>', '<S-Right>')
 vim.keymap.set('c', '<M-Left>', '<S-Left>')
 vim.keymap.set('i', '<M-Right>', '<S-Right>')
 vim.keymap.set('i', '<M-Left>', '<S-Left>')
-vim.keymap.set('t', '<M-Right>', function()
-  vim.api.nvim_feedkeys('\27f', 't', true)
-end)
-vim.keymap.set('t', '<M-Left>', function()
-  vim.api.nvim_feedkeys('\27b', 't', true)
-end)
 
 -- Copy file path and line number to clipboard
 vim.keymap.set('n', '<leader>c', function()
@@ -1243,6 +1235,18 @@ require('lazy').setup({
     'Aasim-A/scrollEOF.nvim',
     event = { 'CursorMoved', 'WinScrolled' },
     opts = {},
+  },
+
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    ft = { 'markdown' },
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    opts = {
+      render_modes = { 'n', 'c', 't' },
+      heading = {
+        backgrounds = {},
+      },
+    },
   },
 
   -- {
