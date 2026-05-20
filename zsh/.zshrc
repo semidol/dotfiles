@@ -168,8 +168,8 @@ eval "$(zoxide init zsh)"
 # Bind F12 (triggered by Cmd+Shift+N) to run tmux-pick
 bindkey -s '^[[24~' 'tmux-pick\n'
 
-bindkey '\e[1;3D' backward-word
-bindkey '\e[1;3C' forward-word
+bindkey '\e[1;3D' vi-backward-word
+bindkey '\e[1;3C' vi-forward-word
 
 _jl_filter() {
   while IFS= read -r line; do
