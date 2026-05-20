@@ -849,12 +849,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load { include = { 'markdown' } }
+            end,
+          },
         },
         opts = {},
         config = function()
@@ -1241,10 +1241,16 @@ require('lazy').setup({
     'MeanderingProgrammer/render-markdown.nvim',
     ft = { 'markdown' },
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
     opts = {
       render_modes = { 'n', 'c', 't' },
       heading = {
         backgrounds = {},
+        signs = {},
+      },
+      pipe_table = {
+        cell = 'trimmed',
       },
     },
   },
