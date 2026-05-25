@@ -133,7 +133,7 @@ FUSE_RPC=https://rpc.fuse.io
 export FOUNDRY_DISABLE_NIGHTLY_WARNING=true
 
 alias gac="git-ai-commit"
-alias gs="git status"
+alias claude-tuned='claude --system-prompt "" --disallowed-tools "ShareOnboardingGuide"'
 
 mmd-watch() {
       local file="$1"
