@@ -1241,9 +1241,14 @@ require('lazy').setup({
     'MeanderingProgrammer/render-markdown.nvim',
     ft = { 'markdown' },
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    -- (ai-generated, may be inaccurate) nvim 0.12 bug: stale TSNode userdata passes nil checks but has nil methods.
+    -- patched in: nvim-treesitter/lua/nvim-treesitter/query_predicates.lua:138
+    --   `if not node or not node.range then return end`
+    -- reapply after `nvim-treesitter` updates.
     ---@module 'render-markdown'
     ---@type render.md.UserConfig
     opts = {
+      restart_highlighter = true,
       render_modes = { 'n', 'c', 't' },
       heading = {
         backgrounds = {},
