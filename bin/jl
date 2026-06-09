@@ -1,0 +1,17 @@
+#!/bin/sh
+# jl - run a command and pretty-print any JSON lines in output
+# Usage: jl <command> [args...]
+
+_jl_filter() {
+  while IFS= read -r line; do
+    if echo "$line" | jq -e . >/dev/null 2>&1; then
+      echo "$line" | jq -C .
+    else
+      echo "$line"
+    fi
+  done
+}
+
+jl() {
+  "$@" 2>&1 | _jl_filter
+}
