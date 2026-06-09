@@ -33,6 +33,9 @@ end)
 -- Enable break indent
 vim.o.breakindent = true
 
+-- Wrap at word boundaries instead of mid-word
+vim.o.linebreak = true
+
 -- Save undo history
 vim.o.undofile = true
 
@@ -103,6 +106,10 @@ vim.keymap.set('n', '<leader>tt', function()
   local config = vim.diagnostic.config()
   vim.diagnostic.config { virtual_text = not config.virtual_text }
 end, { desc = '[T]oggle virtual [T]ext' })
+
+vim.keymap.set('n', '<leader>tm', function()
+  require('render-markdown').toggle()
+end, { desc = '[T]oggle [M]arkdown preview' })
 
 vim.keymap.set('n', '<C-s>', ':w<CR>', { desc = 'Save file' })
 
