@@ -1,0 +1,1 @@
+claude --system-prompt "Answer shortly until the user asks otherwise" --disallowed-tools "ShareOnboardingGuide"
