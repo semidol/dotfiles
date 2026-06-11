@@ -444,6 +444,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sg', function()
         builtin.live_grep {
+          additional_args = { '--hidden' },
           attach_mappings = function(prompt_bufnr, map)
             map('i', '<C-f>', function()
               local search_dir = vim.fn.input 'Filter directory: '
