@@ -1,1 +1,1 @@
-claude --system-prompt "Answer shortly until the user asks otherwise" --disallowed-tools "ShareOnboardingGuide"
+claude --system-prompt "Answer shortly until the user asks otherwise. Answer as simple as possible without loosing terminology" --disallowed-tools "ShareOnboardingGuide"
