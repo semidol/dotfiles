@@ -1161,6 +1161,43 @@ require('lazy').setup({
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
+    config = function(_, opts)
+      require('nvim-treesitter.configs').setup(opts)
+
+      -- Neovim 0.12 fix: nvim-treesitter's `#set-lang-from-info-string!` directive
+      -- is broken and never spawns the fenced-code child parser, so code blocks
+      -- (and LSP hover signatures) fall back to @markup.raw.block (green).
+      -- Override the markdown injections query to read the language node directly.
+      local markdown_injections = [[
+        (fenced_code_block
+          (info_string
+            (language) @injection.language)
+          (code_fence_content) @injection.content)
+
+        ((html_block) @injection.content
+          (#set! injection.language "html")
+          (#set! injection.combined)
+          (#set! injection.include-children))
+
+        ((minus_metadata) @injection.content
+          (#set! injection.language "yaml")
+          (#offset! @injection.content 1 0 -1 0)
+          (#set! injection.include-children))
+
+        ((plus_metadata) @injection.content
+          (#set! injection.language "toml")
+          (#offset! @injection.content 1 0 -1 0)
+          (#set! injection.include-children))
+
+        ([
+          (inline)
+          (pipe_table_cell)
+        ] @injection.content
+          (#set! injection.language "markdown_inline"))
+      ]]
+
+      vim.treesitter.query.set('markdown', 'injections', markdown_injections)
+    end,
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
     --
@@ -1245,28 +1282,30 @@ require('lazy').setup({
     opts = {},
   },
 
-  {
-    'MeanderingProgrammer/render-markdown.nvim',
-    ft = { 'markdown' },
-    dependencies = { 'nvim-treesitter/nvim-treesitter' },
-    -- (ai-generated, may be inaccurate) nvim 0.12 bug: stale TSNode userdata passes nil checks but has nil methods.
-    -- patched in: nvim-treesitter/lua/nvim-treesitter/query_predicates.lua:138
-    --   `if not node or not node.range then return end`
-    -- reapply after `nvim-treesitter` updates.
-    ---@module 'render-markdown'
-    ---@type render.md.UserConfig
-    opts = {
-      restart_highlighter = true,
-      render_modes = { 'n', 'c', 't' },
-      heading = {
-        backgrounds = {},
-        signs = {},
-      },
-      pipe_table = {
-        cell = 'trimmed',
-      },
-    },
-  },
+  -- it adds language name in LSP type hint - resolve it and then uncomment the plugin
+  -- {
+  --   'MeanderingProgrammer/render-markdown.nvim',
+  --   ft = { 'markdown' },
+  --   dependencies = { 'nvim-treesitter/nvim-treesitter' },
+  --   -- nvim 0.12 bug: stale TSNode userdata crashes set-lang-from-info-string!.
+  --   -- patched in: nvim-treesitter/lua/nvim-treesitter/query_predicates.lua:135
+  --   --   guard get_node_text in pcall; do NOT skip on `not node.range`
+  --   --   (that drops injection.language and turns LSP hover code green).
+  --   -- reapply after `nvim-treesitter` updates.
+  --   ---@module 'render-markdown'
+  --   ---@type render.md.UserConfig
+  --   opts = {
+  --     restart_highlighter = true,
+  --     render_modes = { 'n', 'c', 't' },
+  --     heading = {
+  --       backgrounds = {},
+  --       signs = {},
+  --     },
+  --     pipe_table = {
+  --       cell = 'trimmed',
+  --     },
+  --   },
+  -- },
 
   -- {
   --   'mracos/mermaid.vim',
