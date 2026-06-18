@@ -6,6 +6,8 @@ config.send_composed_key_when_right_alt_is_pressed = false
 
 config.enable_tab_bar = false
 
+config.term = "wezterm"
+
 config.font_size = 17.0
 
 -- Disable font ligatures
