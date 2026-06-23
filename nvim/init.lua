@@ -820,6 +820,7 @@ require('lazy').setup({
         javascript = { 'prettier' },
         typescript = { 'prettier' },
         graphql = { 'prettier' },
+        json = { 'prettier' },
         solidity = { 'forge' },
       },
       formatters = {
