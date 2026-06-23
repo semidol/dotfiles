@@ -1283,30 +1283,42 @@ require('lazy').setup({
     opts = {},
   },
 
-  -- it adds language name in LSP type hint - resolve it and then uncomment the plugin
-  -- {
-  --   'MeanderingProgrammer/render-markdown.nvim',
-  --   ft = { 'markdown' },
-  --   dependencies = { 'nvim-treesitter/nvim-treesitter' },
-  --   -- nvim 0.12 bug: stale TSNode userdata crashes set-lang-from-info-string!.
-  --   -- patched in: nvim-treesitter/lua/nvim-treesitter/query_predicates.lua:135
-  --   --   guard get_node_text in pcall; do NOT skip on `not node.range`
-  --   --   (that drops injection.language and turns LSP hover code green).
-  --   -- reapply after `nvim-treesitter` updates.
-  --   ---@module 'render-markdown'
-  --   ---@type render.md.UserConfig
-  --   opts = {
-  --     restart_highlighter = true,
-  --     render_modes = { 'n', 'c', 't' },
-  --     heading = {
-  --       backgrounds = {},
-  --       signs = {},
-  --     },
-  --     pipe_table = {
-  --       cell = 'trimmed',
-  --     },
-  --   },
-  -- },
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    ft = { 'markdown' },
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    -- nvim 0.12 bug: stale TSNode userdata crashes set-lang-from-info-string!.
+    -- patched in: nvim-treesitter/lua/nvim-treesitter/query_predicates.lua:135
+    --   guard get_node_text in pcall; do NOT skip on `not node.range`
+    --   (that drops injection.language and turns LSP hover code green).
+    -- reapply after `nvim-treesitter` updates.
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {
+      restart_highlighter = true,
+      render_modes = { 'n', 'c', 't' },
+      heading = {
+        backgrounds = {},
+        signs = {},
+      },
+      pipe_table = {
+        cell = 'trimmed',
+      },
+      -- LSP hover/signature floats are `nofile` buffers; hide the language
+      -- label there while keeping it in real markdown files.
+      overrides = {
+        buftype = {
+          nofile = {
+            code = {
+              language_name = false,
+              language_icon = false,
+              sign = false,
+            },
+          },
+        },
+      },
+    },
+  },
 
   -- {
   --   'mracos/mermaid.vim',
