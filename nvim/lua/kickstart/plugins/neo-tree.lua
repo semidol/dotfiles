@@ -21,6 +21,9 @@ return {
       filtered_items = {
         hide_dotfiles = false,
         hide_gitignored = true,
+        hide_by_pattern = {
+          '**/.git',
+        },
       },
       window = {
         mappings = {
