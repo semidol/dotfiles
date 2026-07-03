@@ -121,13 +121,20 @@ vim.keymap.set('i', '<M-Right>', '<S-Right>')
 vim.keymap.set('i', '<M-Left>', '<S-Left>')
 
 -- Copy file path and line number to clipboard
-vim.keymap.set('n', '<leader>c', function()
+vim.keymap.set('n', '<leader>C', function()
   local file_path = vim.fn.expand '%:p'
   local line_number = vim.fn.line '.'
   local path_with_line = file_path .. ':' .. line_number
   vim.fn.setreg('+', path_with_line)
   print('Copied: ' .. path_with_line)
-end, { desc = '[C]opy file path with line number' })
+end, { desc = '[c]opy file path with line number' })
+
+-- Copy file path and line number to clipboard
+vim.keymap.set('n', '<leader>c', function()
+  local file_path = vim.fn.expand '%:p'
+  vim.fn.setreg('+', file_path)
+  print('Copied: ' .. file_path)
+end, { desc = '[c]opy file path' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
