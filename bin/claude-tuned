@@ -3,5 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 SYSTEM_PROMPT="$(cat "$SCRIPT_DIR/claude-tuned-system-prompt.md")"
+SYSTEM_PROMPT="$SYSTEM_PROMPT"$'\n\n'"Current working directory: $(pwd)"
 
 claude --disallowed-tools "ShareOnboardingGuide" --system-prompt "$SYSTEM_PROMPT"
