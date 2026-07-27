@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+LAUNCH_DELAY_SECONDS=2
+
+open -a WezTerm
+open -a Telegram
+open -a Vivaldi
+open -a AeroSpace
+open -a "Scroll Reverser"
+open -a pomodorome
+
+open -a iTerm
+sleep "$LAUNCH_DELAY_SECONDS"
+osascript -e 'tell application "iTerm" to close every window'
