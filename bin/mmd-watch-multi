@@ -1,0 +1,84 @@
+#!/bin/sh
+
+out=/tmp/mmd-preview
+port=8765
+
+mkdir -p "$out"
+
+# --render <mode> <files...>
+#   mode=strict : missing/broken file aborts (exit 1). Used for the first render.
+#   mode=live   : errors become inline error cards; never exits. Used while watching.
+if [ "$1" = "--render" ]; then
+  mode="$2"
+  shift 2
+
+  html="$out/index.html"
+  tmp_html=$(mktemp)
+  stamp=$(date +%s)
+
+  {
+    echo '<!doctype html><meta charset="utf-8">'
+    echo '<title>mmd preview</title>'
+    echo '<style>'
+    echo '  body { margin: 0; background: #fff; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; padding: 16px; }'
+    echo '  .diagram { border: 1px solid #eee; padding: 8px; width: min(45vw, 45vh); height: min(45vw, 45vh); display: flex; align-items: center; justify-content: center; }'
+    echo '  .diagram img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }'
+    echo '  .error { border-color: #e88; background: #fee; color: #900; padding: 16px; white-space: pre-wrap; font: 13px monospace; max-width: 400px; }'
+    echo '</style>'
+
+    for f in "$@"; do
+      name=$(basename "$f" .mmd)
+
+      if [ ! -f "$f" ]; then
+        if [ "$mode" = "strict" ]; then
+          echo "mmd-watch-multi: no such file: $f" >&2
+          rm -f "$tmp_html"
+          exit 1
+        fi
+        echo "<div class=\"diagram error\">no such file: $name</div>"
+        continue
+      fi
+
+      tmp_svg=$(mktemp).svg
+      err=$(mmdc -i "$f" -o "$tmp_svg" 2>&1)
+
+      if [ $? -ne 0 ]; then
+        rm -f "$tmp_svg"
+
+        if [ "$mode" = "strict" ]; then
+          echo "mmd-watch-multi: failed to render: $f" >&2
+          echo "$err" >&2
+          rm -f "$tmp_html"
+          exit 1
+        fi
+
+        echo "<div class=\"diagram error\">$name failed to render:\n$err</div>"
+        continue
+      fi
+
+      mv "$tmp_svg" "$out/$name.svg"
+
+      # cache-bust so the browser refetches the new SVG on reload
+      echo "<div class=\"diagram\"><img src=\"$name.svg?$stamp\"></div>"
+    done
+  } > "$tmp_html"
+
+  # write index.html last, in one atomic move -> single reload
+  mv "$tmp_html" "$html"
+
+  exit 0
+fi
+
+# Initial render; bail out if anything is wrong before starting the server
+"$0" --render strict "$@" || exit 1
+
+(cd "$out" && live-server --port="$port" --open=index.html --ignore='*.svg') &
+server_pid=$!
+
+# Watch the directory of the first file for any .mmd change
+watch_dir=$(dirname "$1")
+
+# --no-vcs-ignore: .tmp and similar dirs are often gitignored; watch them anyway
+watchexec -w "$watch_dir" -e mmd --no-vcs-ignore -- "$0" --render live "$@"
+
+kill "$server_pid" 2>/dev/null
