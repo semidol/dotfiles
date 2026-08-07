@@ -1,8 +1,12 @@
 #!/bin/sh
 
-local file="$1"
-      mmdc -i "$file" -o /tmp/preview.svg
-      (cd /tmp && live-server --port=8765 --open=preview.svg) &
-      local server_pid=$!
-      watchexec -w "$file" "mmdc -i \"$file\" -o /tmp/preview.svg"
-      kill $server_pid 2>/dev/null
+file="$1"
+
+mmdc -i "$file" -o /tmp/preview.svg
+
+(cd /tmp && live-server --port=8765 --open=preview.svg) &
+server_pid=$!
+
+watchexec -w "$file" "mmdc -i \"$file\" -o /tmp/preview.svg"
+
+kill "$server_pid" 2>/dev/null
