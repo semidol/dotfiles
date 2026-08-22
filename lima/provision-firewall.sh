@@ -1,6 +1,11 @@
 #!/bin/bash
 # Blocks the guest from reaching the host's LAN while leaving the internet
 # reachable. Runs as root on every boot; nft rules do not survive a reboot.
+#
+# TODO: these rules live inside the guest, so anything with root here can flush
+# them. That stops accidental and opportunistic access but not a deliberate
+# escape. Enforcing this outside the guest -- pf rules on the host with vzNAT,
+# or routing the guest through a proxy -- would close the gap.
 set -euo pipefail
 
 # Lima's userspace network. The gateway lives here and proxies DNS, so this
