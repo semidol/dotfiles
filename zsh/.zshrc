@@ -19,6 +19,18 @@ export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/utils:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 
+# ── Linux dev VM ─────────────────────────────────────────────────────────────
+# The VM provisions node through fnm and foundry into ~/.foundry, neither of
+# which matches the macOS setup.
+if [[ "$OSTYPE" == linux* ]]; then
+  export PATH="$HOME/.foundry/bin:$PATH"
+
+  if [[ -x "$HOME/.local/share/fnm/fnm" ]]; then
+    export PATH="$HOME/.local/share/fnm:$PATH"
+    eval "$(fnm env --use-on-cd --shell zsh)"
+  fi
+fi
+
 # ── Environment ──────────────────────────────────────────────────────────────
 export JQ_COLORS="0;36:0;36:0;36:0;33:0;92:0;35:0;34:0;31"
 
