@@ -8,7 +8,8 @@ fi
 
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="powerlevel10k/powerlevel10k"
-plugins=(git zsh-autosuggestions rust docker fzf nvm)
+# zsh-syntax-highlighting wraps ZLE widgets, so it must stay last.
+plugins=(git zsh-autosuggestions rust docker fzf nvm zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -33,5 +34,4 @@ bindkey '\e[1;3D' vi-backward-word
 bindkey '\e[1;3C' vi-forward-word
 
 # ── Tools ─────────────────────────────────────────────────────────────────────
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 eval "$(zoxide init zsh)"

@@ -18,12 +18,14 @@ install_base_packages() {
     curl \
     fd-find \
     file \
+    fzf \
     git \
     gnupg \
     jq \
     ripgrep \
     tmux \
     unzip \
+    zoxide \
     zsh
 
   # Debian and Ubuntu package fd under a different binary name.
