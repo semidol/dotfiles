@@ -22,6 +22,7 @@ install_base_packages() {
     git \
     gnupg \
     jq \
+    nftables \
     ripgrep \
     tmux \
     unzip \
