@@ -25,6 +25,7 @@ link_configs() {
   ln -sfn "${DOTFILES}/nvim" "${CONFIG}/nvim"
   ln -sfn "${DOTFILES}/tmux" "${CONFIG}/tmux"
   ln -sf "${DOTFILES}/zsh/.zshrc" "${HOME}/.zshrc"
+  ln -sf "${DOTFILES}/zsh/.p10k.zsh" "${HOME}/.p10k.zsh"
   ln -sfn "${DOTFILES}/bin" "${HOME}/bin"
 }
 
