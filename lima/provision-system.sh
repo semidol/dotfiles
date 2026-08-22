@@ -67,7 +67,9 @@ configure_user() {
   chsh -s "$(command -v zsh)" "$USER_NAME"
 }
 
-readonly USER_NAME="$(id -nu 1000)"
+# Lima mirrors the host UID, which is not necessarily 1000, but it always
+# creates the primary group with GID 1000.
+readonly USER_NAME="$(getent group 1000 | cut -d: -f1)"
 
 if [[ -f "$STAMP" ]]; then
   exit 0

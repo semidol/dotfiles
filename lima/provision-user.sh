@@ -1,14 +1,12 @@
 #!/bin/bash
-# Installs user-level tooling and generates the git SSH key.
-# Runs as the lima user on every VM start, so every step must be idempotent.
+# Installs user-level tooling and configures git credential storage.
+# Runs as the lima user during cloud-init.
 #
-# Dotfiles are deliberately NOT cloned here: the key generated below has to be
-# registered on GitHub first. Run bootstrap-dotfiles.sh once that is done.
+# Dotfiles are deliberately NOT cloned here: cloning needs a GitHub token that
+# has to be entered interactively. Run bootstrap-dotfiles.sh once that is done.
 set -euo pipefail
 
 readonly STAMP="${HOME}/.local/state/lima-provision-user.done"
-readonly SSH_KEY="${HOME}/.ssh/id_personal"
-readonly SSH_HOST_ALIAS="github-personal"
 readonly FNM_BIN_DIR="${HOME}/.local/share/fnm"
 readonly FOUNDRY_BIN_DIR="${HOME}/.foundry/bin"
 readonly NODE_VERSION="22"
@@ -31,44 +29,12 @@ install_foundry() {
   "${FOUNDRY_BIN_DIR}/foundryup"
 }
 
-generate_git_key() {
-  mkdir -p "${HOME}/.ssh"
-  chmod 700 "${HOME}/.ssh"
+configure_git_credentials() {
+  git config --global credential.helper store
 
-  if [[ ! -f "$SSH_KEY" ]]; then
-    ssh-keygen -t ed25519 -N "" -f "$SSH_KEY" -C "lima-dev-personal"
-  fi
-
-  cat >"${HOME}/.ssh/config" <<EOF
-Host ${SSH_HOST_ALIAS}
-  HostName github.com
-  User git
-  IdentityFile ${SSH_KEY}
-  IdentitiesOnly yes
-EOF
-
-  chmod 600 "${HOME}/.ssh/config"
-
-  if ! grep -q "github.com" "${HOME}/.ssh/known_hosts" 2>/dev/null; then
-    ssh-keyscan -t ed25519 github.com >>"${HOME}/.ssh/known_hosts" 2>/dev/null
-  fi
-}
-
-report_next_steps() {
-  # Dotfiles already present means the one-time setup is done.
-  if [[ -d "${HOME}/dotfiles" ]]; then
-    return
-  fi
-
-  echo "=========================================================="
-  echo "Register this key at https://github.com/settings/keys"
-  echo
-  cat "${SSH_KEY}.pub"
-  echo
-  echo "Then, inside the VM, run:"
-  echo "  git clone git@${SSH_HOST_ALIAS}:semidol/dotfiles.git ~/dotfiles"
-  echo "  ~/dotfiles/lima/bootstrap-dotfiles.sh"
-  echo "=========================================================="
+  # Store one credential per repository path rather than per host,
+  # so several GitHub accounts can coexist.
+  git config --global credential.https://github.com.useHttpPath true
 }
 
 if [[ -f "$STAMP" ]]; then
@@ -77,9 +43,7 @@ fi
 
 install_node
 install_foundry
-generate_git_key
+configure_git_credentials
 
 mkdir -p "$(dirname "$STAMP")"
 touch "$STAMP"
-
-report_next_steps
