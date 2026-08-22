@@ -25,5 +25,15 @@ table inet lima_guard {
 
     ip daddr { ${PRIVATE_RANGES} } reject with icmp type net-unreachable
   }
+
+  # Container traffic is routed, not locally generated, so it bypasses the
+  # output hook entirely.
+  chain forward {
+    type filter hook forward priority filter; policy accept;
+
+    ip daddr ${DOCKER_SUBNET} accept
+
+    ip daddr { ${PRIVATE_RANGES} } reject with icmp type net-unreachable
+  }
 }
 EOF
