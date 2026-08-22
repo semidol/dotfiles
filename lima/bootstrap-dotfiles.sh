@@ -11,6 +11,18 @@ readonly CONFIG="${HOME}/.config"
 readonly OH_MY_ZSH="${HOME}/.oh-my-zsh"
 readonly ZSH_CUSTOM="${OH_MY_ZSH}/custom"
 readonly TPM="${HOME}/.tmux/plugins/tpm"
+readonly CLAUDE_HOME="${HOME}/.claude"
+
+# Claude writes session state into ~/.claude, so only the configuration
+# entries are symlinked and the directory itself stays writable.
+readonly CLAUDE_CONFIG_ENTRIES=(
+  CLAUDE.md
+  settings.json
+  keybindings.json
+  rules
+  agents
+  skills
+)
 
 require_dotfiles() {
   if [[ ! -d "$DOTFILES" ]]; then
@@ -27,6 +39,16 @@ link_configs() {
   ln -sf "${DOTFILES}/zsh/.zshrc" "${HOME}/.zshrc"
   ln -sf "${DOTFILES}/zsh/.p10k.zsh" "${HOME}/.p10k.zsh"
   ln -sfn "${DOTFILES}/bin" "${HOME}/bin"
+}
+
+link_claude_config() {
+  mkdir -p "$CLAUDE_HOME"
+
+  local entry
+  for entry in "${CLAUDE_CONFIG_ENTRIES[@]}"; do
+    rm -rf "${CLAUDE_HOME}/${entry}"
+    ln -sfn "${DOTFILES}/claude/${entry}" "${CLAUDE_HOME}/${entry}"
+  done
 }
 
 install_oh_my_zsh() {
@@ -65,6 +87,7 @@ install_nvim_plugins() {
 
 require_dotfiles
 link_configs
+link_claude_config
 install_oh_my_zsh
 install_tmux_plugins
 install_nvim_plugins

@@ -1,0 +1,3 @@
+- use comments only if code doesn't clearly describe itself
+- don't use "magic numbers", use named constants
+- add lines between code logic to improve readability
