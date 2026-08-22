@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+# Require path parameter
+if [ -z "$1" ]; then
+    echo "Usage: tmux-project <path>"
+    exit 1
+fi
+
+TARGET_PATH="$1"
+
+# Verify directory exists
+if [ ! -d "$TARGET_PATH" ]; then
+    echo "Error: Directory '$TARGET_PATH' does not exist"
+    exit 1
+fi
+
+# Convert to absolute path
+TARGET_PATH="$(cd "$TARGET_PATH" && pwd)"
+
+# Base directory (leaf)
+BASE="$(basename "$TARGET_PATH")"
+
+# Separator (can't use ":" as tmux uses it to separate session:window)
+SEP="@"
+
+# Start with the simplest name
+SESSION="$BASE"
+
+# Get list of existing tmux sessions with their paths
+existing_sessions=$(tmux list-sessions -F '#{session_name}:#{session_path}' 2>/dev/null)
+
+# Check if a session already exists for this exact directory
+existing_session=$(echo "$existing_sessions" | grep ":$TARGET_PATH$" | cut -d: -f1)
+
+if [ -n "$existing_session" ]; then
+    # Session for this directory already exists, use it
+    SESSION="$existing_session"
+else
+    echo "finding unique session name"
+    # Need to find a unique session name
+    existing_names=$(echo "$existing_sessions" | cut -d: -f1)
+
+    # If session exists, prepend parent directories until unique
+    if echo "$existing_names" | grep -qx "$SESSION"; then
+        path="$TARGET_PATH"
+        while :; do
+            path="$(dirname "$path")"
+            parent="$(basename "$path")"
+
+            # Stop at filesystem root
+            [ "$parent" = "/" ] && break
+
+            SESSION="${parent}${SEP}${SESSION}"
+
+            if ! echo "$existing_names" | grep -qx "$SESSION"; then
+                break
+            fi
+        done
+    fi
+fi
+
+# Create session if needed
+if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+    echo "creating session"
+    tmux new-session -d -s "$SESSION" -c "$TARGET_PATH"
+    tmux send-keys -t "$SESSION" "nvim" C-m
+    tmux new-window -t "$SESSION" -c "$TARGET_PATH"
+    tmux send-keys -t "$SESSION" "claude-tuned" C-m
+    tmux new-window -t "$SESSION" -c "$TARGET_PATH"
+fi
+
+# Switch to session (use switch-client if inside tmux, attach if outside)
+if [ -n "$TMUX" ]; then
+    tmux switch-client -t "$SESSION"
+else
+    tmux attach -t "$SESSION"
+fi

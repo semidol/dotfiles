@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -e
+
+# The dev VM keeps repos under ~/projects; the host uses ~/IT.
+PROJECT_ROOT="${TMUX_PICK_ROOT:-$HOME/IT}"
+
+if [ ! -d "$PROJECT_ROOT" ]; then
+    PROJECT_ROOT="$HOME/projects"
+fi
+
+# 1. Try zoxide interactive picker
+# Force fullscreen and add descriptive prompt for zoxide's fzf
+DIR=$(_ZO_FZF_OPTS="--prompt='Select project (recent) > '" zoxide query -i 2>/dev/null || true)
+
+# 2. Fallback: scan ~/IT if zoxide returns nothing
+if [ -z "$DIR" ]; then
+    DIR=$(find "$PROJECT_ROOT" -mindepth 1 -maxdepth 3 -type d \
+        -not -path '*/.git/*' |
+        fzf --prompt="Select project (all) > ")
+fi
+
+[ -z "$DIR" ] && exit 0
+
+# 3. Ensure zoxide learns it
+zoxide add "$DIR" 2>/dev/null || true
+
+# 4. Enter project and launch tmux
+cd "$DIR"
+exec tmux-at .
