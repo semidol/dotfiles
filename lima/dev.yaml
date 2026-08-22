@@ -19,6 +19,10 @@ ssh:
   forwardAgent: false
 
 provision:
+  # nftables rules are not persisted, so they are reapplied on every boot.
+  - mode: boot
+    file: provision-firewall.sh
+
   - mode: system
     file: provision-system.sh
 
