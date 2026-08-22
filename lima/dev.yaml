@@ -1,0 +1,36 @@
+vmType: "vz"
+rosetta:
+  enabled: true
+  binfmt: true
+
+images:
+  - location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+
+cpus: 4
+memory: "8GiB"
+disk: "30GiB"
+
+# No host filesystem is exposed to the guest.
+mounts: []
+mountType: "virtiofs"
+
+ssh:
+  forwardAgent: false
+
+provision:
+  - mode: system
+    file: provision-system.sh
+
+  - mode: user
+    file: provision-user.sh
+
+probes:
+  - description: "toolchain to be installed"
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      if ! timeout 300s bash -c "until command -v docker >/dev/null 2>&1; do sleep 3; done"; then
+        echo >&2 "docker was not installed"
+        exit 1
+      fi
