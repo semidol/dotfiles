@@ -33,6 +33,10 @@ table inet lima_guard {
 
     ip daddr ${DOCKER_SUBNET} accept
 
+    # Containers resolve through the gateway on the Lima subnet.
+    ip daddr ${LIMA_SUBNET} udp dport 53 accept
+    ip daddr ${LIMA_SUBNET} tcp dport 53 accept
+
     ip daddr { ${PRIVATE_RANGES} } reject with icmp type net-unreachable
   }
 }
