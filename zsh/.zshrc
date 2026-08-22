@@ -26,6 +26,9 @@ export JQ_COLORS="0;36:0;36:0;36:0;33:0;92:0;35:0;34:0;31"
 alias gac="git-ai-commit"
 alias gs="git status"
 
+# limactl defaults to bash regardless of the guest's login shell.
+alias devsh="limactl shell --shell /usr/bin/zsh dev"
+
 # ── Keybindings ───────────────────────────────────────────────────────────────
 # Bind F12 (triggered by Cmd+Shift+N) to run tmux-pick
 bindkey -s '^[[24~' 'tmux-pick\n'
