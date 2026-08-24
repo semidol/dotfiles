@@ -32,6 +32,35 @@ guest() {
     limactl shell "$VM_NAME" -- "$@"
 }
 
+# Lima writes a ready-made SSH config per VM, but git only sees it once the
+# user's own config pulls it in. The Include has to precede every Host block,
+# or it would be scoped to whichever host it landed under.
+ensure_ssh_include() {
+    local lima_config="${HOME}/.lima/${VM_NAME}/ssh.config"
+    local ssh_config="${HOME}/.ssh/config"
+    local include_line="Include ${lima_config}"
+
+    [ -f "$lima_config" ] || die "Lima has not written ${lima_config}"
+
+    if [ -f "$ssh_config" ] && grep -qxF "$include_line" "$ssh_config"; then
+        return
+    fi
+
+    mkdir -p "${HOME}/.ssh"
+    chmod 700 "${HOME}/.ssh"
+
+    local merged
+    merged="$(mktemp)"
+
+    printf '%s\n\n' "$include_line" >"$merged"
+    [ -f "$ssh_config" ] && cat "$ssh_config" >>"$merged"
+
+    mv "$merged" "$ssh_config"
+    chmod 600 "$ssh_config"
+
+    echo "added to ~/.ssh/config: ${include_line}"
+}
+
 # Prints the chosen identity: either "global" or a filename in IDENTITY_DIR.
 pick_identity() {
     local -a choices=("global")
@@ -108,6 +137,8 @@ limactl list --format '{{.Name}}' | grep -qx "$VM_NAME" ||
 
 guest test ! -e "$GUEST_PATH" ||
     die "already exists in the guest: ~/${GUEST_PATH}"
+
+ensure_ssh_include
 
 # Choose the identity first, so an abandoned prompt leaves nothing half-built.
 IDENTITY="$(pick_identity)"

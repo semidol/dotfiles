@@ -86,11 +86,21 @@ step "ssh transport"
 if grep -q "lima/${VM_NAME}/ssh.config" "$HOME/.ssh/config" 2>/dev/null; then
     pass "~/.ssh/config includes Lima's config"
 else
-    fail "~/.ssh/config is missing: Include ~/.lima/${VM_NAME}/ssh.config"
-    info "add it, then rerun"
+    info "~/.ssh/config has no Include yet; proj-new should add it"
+fi
+
+step "proj-new (local project)"
+
+if printf '1\n' | proj-new "$PROJECT"; then
+    pass "proj-new exited cleanly"
+else
+    fail "proj-new failed"
     exit 1
 fi
 
+step "ssh transport"
+
+# Checked after proj-new, which is what installs the Include on first run.
 if ssh -o BatchMode=yes "$VM_SSH_HOST" true 2>/dev/null; then
     pass "ssh ${VM_SSH_HOST} works"
 else
@@ -106,15 +116,6 @@ if [ -n "$remote_git" ]; then
 else
     fail "git-receive-pack not on the guest's non-interactive PATH"
     info "proj-new will need remote.*.receivepack set to an absolute path"
-fi
-
-step "proj-new (local project)"
-
-if printf '1\n' | proj-new "$PROJECT"; then
-    pass "proj-new exited cleanly"
-else
-    fail "proj-new failed"
-    exit 1
 fi
 
 if [ -d "${HOST_REPO_ROOT}/${PROJECT}.git" ]; then
