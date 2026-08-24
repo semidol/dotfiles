@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+# Exercises proj-new and proj-sync end to end against a throwaway project.
+#
+#   proj-selftest [github-url]
+#
+# Run on the host. Reports each step, then removes everything it created.
+# A github-url additionally tests seeding a project from an existing remote.
+set -uo pipefail
+
+readonly VM_NAME="${LIMA_VM_NAME:-dev}"
+readonly VM_SSH_HOST="${LIMA_SSH_HOST:-lima-dev}"
+readonly HOST_REPO_ROOT="${PROJ_REPO_ROOT:-$HOME/repos}"
+readonly PROJECT="proj-selftest-$$"
+readonly UPSTREAM_URL="${1:-}"
+
+failures=0
+
+step() {
+    printf '\n=== %s\n' "$1"
+}
+
+pass() {
+    printf 'PASS  %s\n' "$1"
+}
+
+fail() {
+    printf 'FAIL  %s\n' "$1"
+    failures=$((failures + 1))
+}
+
+info() {
+    printf '      %s\n' "$1"
+}
+
+guest() {
+    limactl shell "$VM_NAME" -- "$@"
+}
+
+cleanup() {
+    step "cleanup"
+
+    rm -rf "${HOST_REPO_ROOT:?}/${PROJECT}.git"
+    guest rm -rf "projects/${PROJECT}" 2>/dev/null
+
+    if [ -n "$UPSTREAM_URL" ]; then
+        rm -rf "${HOST_REPO_ROOT:?}/${PROJECT}-upstream.git"
+        guest rm -rf "projects/${PROJECT}-upstream" 2>/dev/null
+    fi
+
+    info "removed test project"
+}
+trap cleanup EXIT
+
+step "prerequisites"
+
+if command -v limactl >/dev/null; then
+    pass "limactl present"
+else
+    fail "limactl not found"
+    exit 1
+fi
+
+if command -v proj-new >/dev/null && command -v proj-sync >/dev/null; then
+    pass "proj-new and proj-sync on PATH"
+else
+    fail "proj-new/proj-sync not on PATH"
+    exit 1
+fi
+
+if limactl list --format '{{.Name}}' | grep -qx "$VM_NAME"; then
+    pass "VM ${VM_NAME} exists"
+else
+    fail "no VM named ${VM_NAME}"
+    exit 1
+fi
+
+if limactl list --format '{{.Name}} {{.Status}}' | grep -qx "${VM_NAME} Running"; then
+    pass "VM is running"
+else
+    fail "VM is not running (limactl start ${VM_NAME})"
+    exit 1
+fi
+
+step "ssh transport"
+
+if grep -q "lima/${VM_NAME}/ssh.config" "$HOME/.ssh/config" 2>/dev/null; then
+    pass "~/.ssh/config includes Lima's config"
+else
+    fail "~/.ssh/config is missing: Include ~/.lima/${VM_NAME}/ssh.config"
+    info "add it, then rerun"
+    exit 1
+fi
+
+if ssh -o BatchMode=yes "$VM_SSH_HOST" true 2>/dev/null; then
+    pass "ssh ${VM_SSH_HOST} works"
+else
+    fail "cannot ssh to ${VM_SSH_HOST}"
+    exit 1
+fi
+
+remote_git="$(ssh -o BatchMode=yes "$VM_SSH_HOST" 'command -v git-receive-pack git-upload-pack' 2>/dev/null)"
+
+if [ -n "$remote_git" ]; then
+    pass "git transport binaries found non-interactively"
+    info "$(echo "$remote_git" | tr '\n' ' ')"
+else
+    fail "git-receive-pack not on the guest's non-interactive PATH"
+    info "proj-new will need remote.*.receivepack set to an absolute path"
+fi
+
+step "proj-new (local project)"
+
+if printf '1\n' | proj-new "$PROJECT"; then
+    pass "proj-new exited cleanly"
+else
+    fail "proj-new failed"
+    exit 1
+fi
+
+if [ -d "${HOST_REPO_ROOT}/${PROJECT}.git" ]; then
+    pass "bare repo created on host"
+else
+    fail "no bare repo at ${HOST_REPO_ROOT}/${PROJECT}.git"
+fi
+
+if guest test -d "projects/${PROJECT}/.git"; then
+    pass "guest repo created"
+else
+    fail "no guest repo at ~/projects/${PROJECT}"
+fi
+
+guest_branch="$(guest git -C "projects/${PROJECT}" symbolic-ref --short HEAD 2>/dev/null | tr -d '\r')"
+
+if [ "$guest_branch" = "dev" ]; then
+    pass "guest is on dev"
+else
+    fail "guest is on '${guest_branch}', expected dev"
+fi
+
+deny_current="$(guest git -C "projects/${PROJECT}" config receive.denyCurrentBranch 2>/dev/null | tr -d '\r')"
+
+if [ "$deny_current" = "updateInstead" ]; then
+    pass "receive.denyCurrentBranch=updateInstead"
+else
+    fail "receive.denyCurrentBranch is '${deny_current}'"
+fi
+
+step "commit in the guest"
+
+guest git -C "projects/${PROJECT}" commit --allow-empty -m "selftest commit" >/dev/null 2>&1
+
+if guest git -C "projects/${PROJECT}" rev-parse HEAD >/dev/null 2>&1; then
+    pass "commit created"
+    info "author: $(guest git -C "projects/${PROJECT}" log -1 --format='%an <%ae>' | tr -d '\r')"
+else
+    fail "could not commit (is an identity configured?)"
+    exit 1
+fi
+
+step "proj-sync (guest to host)"
+
+if proj-sync "$PROJECT"; then
+    pass "proj-sync exited cleanly"
+else
+    fail "proj-sync failed"
+fi
+
+host_head="$(git -C "${HOST_REPO_ROOT}/${PROJECT}.git" rev-parse dev 2>/dev/null)"
+guest_head="$(guest git -C "projects/${PROJECT}" rev-parse dev 2>/dev/null | tr -d '\r')"
+
+if [ -n "$host_head" ] && [ "$host_head" = "$guest_head" ]; then
+    pass "host dev matches guest dev"
+else
+    fail "host dev '${host_head}' != guest dev '${guest_head}'"
+fi
+
+if [ -d "${HOST_REPO_ROOT}/${PROJECT}.git/objects" ] &&
+    [ ! -e "${HOST_REPO_ROOT}/${PROJECT}.git/index" ]; then
+    pass "host repo is bare (no working tree)"
+else
+    info "host repo has an index; check it was created bare"
+fi
+
+step "proj-sync --down (host to guest)"
+
+git -C "${HOST_REPO_ROOT}/${PROJECT}.git" commit-tree -m "host side" \
+    -p dev "$(git -C "${HOST_REPO_ROOT}/${PROJECT}.git" rev-parse dev^{tree})" \
+    >/tmp/${PROJECT}.rev 2>/dev/null
+
+if [ -s "/tmp/${PROJECT}.rev" ]; then
+    git -C "${HOST_REPO_ROOT}/${PROJECT}.git" update-ref refs/heads/dev "$(cat "/tmp/${PROJECT}.rev")"
+    rm -f "/tmp/${PROJECT}.rev"
+
+    if proj-sync "$PROJECT" --down; then
+        pass "proj-sync --down exited cleanly"
+    else
+        fail "proj-sync --down failed"
+    fi
+
+    new_guest_head="$(guest git -C "projects/${PROJECT}" rev-parse dev 2>/dev/null | tr -d '\r')"
+    new_host_head="$(git -C "${HOST_REPO_ROOT}/${PROJECT}.git" rev-parse dev)"
+
+    if [ "$new_guest_head" = "$new_host_head" ]; then
+        pass "guest received the host commit"
+    else
+        fail "guest dev '${new_guest_head}' != host dev '${new_host_head}'"
+    fi
+else
+    fail "could not synthesise a host-side commit"
+fi
+
+if [ -n "$UPSTREAM_URL" ]; then
+    step "proj-new (from ${UPSTREAM_URL})"
+
+    if printf '1\n' | proj-new "${PROJECT}-upstream" "$UPSTREAM_URL"; then
+        pass "proj-new with upstream exited cleanly"
+    else
+        fail "proj-new with upstream failed"
+    fi
+
+    file_count="$(guest sh -c "ls -A projects/${PROJECT}-upstream | wc -l" 2>/dev/null | tr -d ' \r')"
+
+    if [ "${file_count:-0}" -gt 1 ]; then
+        pass "guest working tree was seeded (${file_count} entries)"
+    else
+        fail "guest working tree is empty; the seed push did not land"
+    fi
+fi
+
+step "result"
+
+if [ "$failures" -eq 0 ]; then
+    echo "all checks passed"
+else
+    echo "${failures} check(s) failed"
+fi
+
+exit "$failures"

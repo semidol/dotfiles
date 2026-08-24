@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# Sets up a project for work inside the dev VM.
+#
+#   proj-new <name> [github-url]
+#
+# Creates a bare repo on the host, seeds a clone inside the guest, and gives
+# that clone a committing identity. With a URL the bare repo starts from
+# GitHub; without one the project is local to this machine.
+#
+# The host bare repo is the durable copy. The guest is disposable, so work
+# that has not been through proj-sync is not backed up.
+set -euo pipefail
+
+readonly VM_NAME="${LIMA_VM_NAME:-dev}"
+readonly VM_SSH_HOST="${LIMA_SSH_HOST:-lima-dev}"
+readonly HOST_REPO_ROOT="${PROJ_REPO_ROOT:-$HOME/repos}"
+readonly GUEST_PROJECT_ROOT="projects"
+readonly IDENTITY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/git/identities"
+readonly DEFAULT_BRANCH="dev"
+
+die() {
+    echo "proj-new: $1" >&2
+    exit 1
+}
+
+usage() {
+    echo "usage: proj-new <name> [github-url]" >&2
+    exit 1
+}
+
+guest() {
+    limactl shell "$VM_NAME" -- "$@"
+}
+
+# Prints the chosen identity: either "global" or a filename in IDENTITY_DIR.
+pick_identity() {
+    local -a choices=("global")
+
+    if [ -d "$IDENTITY_DIR" ]; then
+        local file
+        for file in "$IDENTITY_DIR"/*; do
+            [ -f "$file" ] && choices+=("$(basename "$file")")
+        done
+    fi
+
+    if [ "${#choices[@]}" -eq 1 ]; then
+        echo "global"
+        return
+    fi
+
+    echo "Commit as:" >&2
+
+    local index=1
+    local choice
+    for choice in "${choices[@]}"; do
+        echo "  ${index}) ${choice}" >&2
+        index=$((index + 1))
+    done
+
+    local reply
+    read -r -p "> " reply </dev/tty
+
+    [[ "$reply" =~ ^[0-9]+$ ]] || die "not a number: ${reply}"
+    [ "$reply" -ge 1 ] && [ "$reply" -le "${#choices[@]}" ] || die "no such option: ${reply}"
+
+    echo "${choices[$((reply - 1))]}"
+}
+
+apply_identity() {
+    local identity="$1"
+    local guest_path="$2"
+
+    if [ "$identity" = "global" ]; then
+        return
+    fi
+
+    local file="${IDENTITY_DIR}/${identity}"
+    local name email
+
+    name="$(git config --file "$file" user.name)" ||
+        die "${identity} defines no user.name"
+    email="$(git config --file "$file" user.email)" ||
+        die "${identity} defines no user.email"
+
+    guest git -C "$guest_path" config user.name "$name"
+    guest git -C "$guest_path" config user.email "$email"
+
+    echo "identity: ${name} <${email}>"
+}
+
+[ $# -ge 1 ] && [ $# -le 2 ] || usage
+
+readonly NAME="$1"
+readonly UPSTREAM_URL="${2:-}"
+
+case "$NAME" in
+    /* | *..*) die "project name must be a relative path without '..'" ;;
+esac
+
+readonly BARE_REPO="${HOST_REPO_ROOT}/${NAME}.git"
+readonly GUEST_PATH="${GUEST_PROJECT_ROOT}/${NAME}"
+
+command -v limactl >/dev/null || die "limactl not found"
+[ -e "$BARE_REPO" ] && die "already exists: ${BARE_REPO}"
+
+limactl list --format '{{.Name}}' | grep -qx "$VM_NAME" ||
+    die "no such VM: ${VM_NAME}"
+
+guest test ! -e "$GUEST_PATH" ||
+    die "already exists in the guest: ~/${GUEST_PATH}"
+
+# Choose the identity first, so an abandoned prompt leaves nothing half-built.
+IDENTITY="$(pick_identity)"
+readonly IDENTITY
+
+mkdir -p "$(dirname "$BARE_REPO")"
+
+if [ -n "$UPSTREAM_URL" ]; then
+    git clone --bare "$UPSTREAM_URL" "$BARE_REPO"
+
+    # A bare clone leaves origin's refspec pointing at itself; make it an
+    # ordinary remote so proj-sync can pull upstream changes later.
+    git -C "$BARE_REPO" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+    git -C "$BARE_REPO" fetch origin
+
+    git -C "$BARE_REPO" show-ref --verify --quiet "refs/heads/${DEFAULT_BRANCH}" ||
+        git -C "$BARE_REPO" branch "$DEFAULT_BRANCH" HEAD
+else
+    git init --bare --initial-branch="$DEFAULT_BRANCH" "$BARE_REPO"
+fi
+
+echo "host: ${BARE_REPO}"
+
+guest mkdir -p "$(dirname "$GUEST_PATH")"
+guest git init --initial-branch="$DEFAULT_BRANCH" "$GUEST_PATH"
+
+# Pushing into a checked-out branch is refused unless the guest agrees to move
+# its working tree along with the ref, which is what makes the files appear.
+guest git -C "$GUEST_PATH" config receive.denyCurrentBranch updateInstead
+
+apply_identity "$IDENTITY" "$GUEST_PATH"
+
+if git -C "$BARE_REPO" show-ref --verify --quiet "refs/heads/${DEFAULT_BRANCH}"; then
+    git -C "$BARE_REPO" push "${VM_SSH_HOST}:${GUEST_PATH}" \
+        "refs/heads/${DEFAULT_BRANCH}:refs/heads/${DEFAULT_BRANCH}"
+fi
+
+echo "guest: ~/${GUEST_PATH}"
+echo
+echo "next: work in the VM, then 'proj-sync ${NAME}'"

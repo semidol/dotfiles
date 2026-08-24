@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# Moves a project's dev branch out of the dev VM.
+#
+#   proj-sync <name>          fetch from the guest, push to origin if present
+#   proj-sync <name> --down   send the host's dev branch back into the guest
+#
+# Guest commits are only ever fetched into the bare repo and forwarded as
+# refs. Nothing from the guest is written to the host as a file, so nothing
+# the agent produced can execute here; read diffs before merging to main.
+set -euo pipefail
+
+readonly VM_SSH_HOST="${LIMA_SSH_HOST:-lima-dev}"
+readonly HOST_REPO_ROOT="${PROJ_REPO_ROOT:-$HOME/repos}"
+readonly GUEST_PROJECT_ROOT="projects"
+readonly DEFAULT_BRANCH="dev"
+
+die() {
+    echo "proj-sync: $1" >&2
+    exit 1
+}
+
+usage() {
+    echo "usage: proj-sync <name> [--down]" >&2
+    exit 1
+}
+
+has_origin() {
+    git -C "$BARE_REPO" remote | grep -qx origin
+}
+
+[ $# -ge 1 ] && [ $# -le 2 ] || usage
+
+readonly NAME="$1"
+readonly DIRECTION="${2:-}"
+
+case "$NAME" in
+    /* | *..*) die "project name must be a relative path without '..'" ;;
+esac
+
+readonly BARE_REPO="${HOST_REPO_ROOT}/${NAME}.git"
+readonly GUEST_REMOTE="${VM_SSH_HOST}:${GUEST_PROJECT_ROOT}/${NAME}"
+
+[ -d "$BARE_REPO" ] || die "no such project: ${NAME}"
+
+if [ "$DIRECTION" = "--down" ]; then
+    git -C "$BARE_REPO" push "$GUEST_REMOTE" \
+        "refs/heads/${DEFAULT_BRANCH}:refs/heads/${DEFAULT_BRANCH}"
+
+    echo "sent ${DEFAULT_BRANCH} to the guest"
+    exit 0
+fi
+
+[ -z "$DIRECTION" ] || usage
+
+before="$(git -C "$BARE_REPO" rev-parse --verify --quiet "refs/heads/${DEFAULT_BRANCH}" || true)"
+readonly before
+
+git -C "$BARE_REPO" fetch "$GUEST_REMOTE" \
+    "+refs/heads/${DEFAULT_BRANCH}:refs/heads/${DEFAULT_BRANCH}"
+
+after="$(git -C "$BARE_REPO" rev-parse "refs/heads/${DEFAULT_BRANCH}")"
+readonly after
+
+if [ "$before" = "$after" ]; then
+    echo "already up to date"
+    exit 0
+fi
+
+if [ -n "$before" ]; then
+    git -C "$BARE_REPO" --no-pager log --oneline "${before}..${after}"
+else
+    git -C "$BARE_REPO" --no-pager log --oneline "$after"
+fi
+
+if has_origin; then
+    git -C "$BARE_REPO" push origin \
+        "refs/heads/${DEFAULT_BRANCH}:refs/heads/${DEFAULT_BRANCH}"
+
+    echo "pushed ${DEFAULT_BRANCH} to origin"
+else
+    echo "no origin; ${BARE_REPO} is the only copy"
+fi
