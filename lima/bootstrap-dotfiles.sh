@@ -1,9 +1,8 @@
 #!/bin/bash
 # Links dotfiles into place and installs shell/editor plugins.
 #
-# Run once, manually, after the SSH key printed by provision-user.sh has been
-# registered on GitHub and the dotfiles repo has been cloned to ~/dotfiles.
-# Safe to re-run after changing dotfiles.
+# Run once, manually, after the host has seeded the repo with proj-new and
+# ~/dotfiles points at it. Safe to re-run after changing dotfiles.
 set -euo pipefail
 
 readonly DOTFILES="${HOME}/dotfiles"

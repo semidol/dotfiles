@@ -1,9 +1,9 @@
 #!/bin/bash
-# Installs user-level tooling and configures git credential storage.
-# Runs as the lima user during cloud-init.
+# Installs user-level tooling. Runs as the lima user during cloud-init.
 #
-# Dotfiles are deliberately NOT cloned here: cloning needs a GitHub token that
-# has to be entered interactively. Run bootstrap-dotfiles.sh once that is done.
+# The VM holds no git credentials by design: it cannot reach any remote, and
+# the host moves work in and out with proj-new and proj-sync. Dotfiles arrive
+# the same way, so nothing is cloned here.
 set -euo pipefail
 
 readonly STAMP="${HOME}/.local/state/lima-provision-user.done"
@@ -29,21 +29,12 @@ install_foundry() {
   "${FOUNDRY_BIN_DIR}/foundryup"
 }
 
-configure_git_credentials() {
-  git config --global credential.helper store
-
-  # Store one credential per repository path rather than per host,
-  # so several GitHub accounts can coexist.
-  git config --global credential.https://github.com.useHttpPath true
-}
-
 if [[ -f "$STAMP" ]]; then
   exit 0
 fi
 
 install_node
 install_foundry
-configure_git_credentials
 
 mkdir -p "$(dirname "$STAMP")"
 touch "$STAMP"
