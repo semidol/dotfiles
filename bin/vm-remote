@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# Wires the current repo to a Lima VM as a git remote.
+#
+# The VM holds no credentials, so the host is the only side that talks to
+# GitHub. Work travels over a plain git remote instead: push to send it in,
+# fetch to bring commits back.
+set -euo pipefail
+
+readonly DEFAULT_INSTANCE="dev"
+readonly REMOTE_SUFFIX="-vm"
+readonly GUEST_PROJECT_ROOT="projects"
+
+usage() {
+  cat <<'EOF'
+usage: vm-remote add [--vm <instance>] [--path <guest-path>]
+
+Creates a repository inside the VM and adds it as a remote of the current
+repository, named <instance>-vm. Transfers nothing: push and fetch as usual
+afterwards.
+
+  --vm <instance>     Lima instance to use (default: dev)
+  --path <guest-path> Repository path inside the VM, relative to its home
+                      unless absolute (default: projects/<repo>)
+EOF
+}
+
+die() {
+  echo >&2 "vm-remote: $1"
+  exit 1
+}
+
+require_repo() {
+  git rev-parse --git-dir >/dev/null 2>&1 ||
+    die "not a git repository"
+}
+
+require_running_instance() {
+  local instance="$1" status
+
+  status="$(limactl list "$instance" --format '{{.Status}}' 2>/dev/null)" ||
+    die "no such Lima instance: ${instance}"
+
+  [[ "$status" == "Running" ]] ||
+    die "Lima instance ${instance} is ${status,,}, start it with: limactl start ${instance}"
+}
+
+# git invokes its transport as `<cmd> <host> <git-receive-pack ...>`, so the
+# host argument is dropped and the rest handed to a shell in the guest. Going
+# through limactl avoids depending on Lima's SSH config layout or its
+# forwarded port, both of which change across restarts.
+guest_transport() {
+  local instance="$1"
+
+  echo "f(){ shift; limactl shell ${instance} sh -c \"\$*\"; }; f"
+}
+
+guest_home() {
+  limactl shell "$1" sh -c 'echo "$HOME"'
+}
+
+create_guest_repo() {
+  local instance="$1" path="$2" branch="$3"
+
+  limactl shell "$instance" bash -c "
+    set -eu
+    if [ -e '${path}' ] && [ ! -d '${path}/.git' ]; then
+      echo >&2 'vm-remote: ${path} exists in the VM and is not a repository'
+      exit 1
+    fi
+
+    if [ ! -d '${path}/.git' ]; then
+      git init -q -b '${branch}' '${path}'
+
+      # The host pushes straight into the checked-out branch, so receiving a
+      # push has to update the working tree instead of only moving the ref.
+      git -C '${path}' config receive.denyCurrentBranch updateInstead
+    fi
+  "
+}
+
+cmd_add() {
+  local instance="$DEFAULT_INSTANCE" guest_path=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --vm) instance="${2:?--vm needs a value}"; shift 2 ;;
+      --path) guest_path="${2:?--path needs a value}"; shift 2 ;;
+      -h|--help) usage; exit 0 ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+
+  require_repo
+  require_running_instance "$instance"
+
+  local branch
+  branch="$(git branch --show-current)"
+  [[ -n "$branch" ]] || die "no branch checked out"
+
+  local remote="${instance}${REMOTE_SUFFIX}"
+
+  : "${guest_path:=${GUEST_PROJECT_ROOT}/$(basename "$PWD")}"
+
+  # Relative paths are resolved against the guest home, so the host shell never
+  # gets a chance to expand a path that only means something inside the VM.
+  if [[ "$guest_path" != /* ]]; then
+    guest_path="$(guest_home "$instance")/${guest_path}"
+  fi
+
+  # Matches `git remote add`, which refuses to redefine an existing remote.
+  ! git remote get-url "$remote" >/dev/null 2>&1 ||
+    die "remote ${remote} already exists"
+
+  create_guest_repo "$instance" "$guest_path" "$branch"
+
+  git remote add "$remote" "vm:${guest_path}"
+  git config core.sshCommand "$(guest_transport "$instance")"
+}
+
+case "${1:-}" in
+  add) shift; cmd_add "$@" ;;
+  -h|--help|"") usage; exit 0 ;;
+  *) die "unknown command: $1" ;;
+esac
