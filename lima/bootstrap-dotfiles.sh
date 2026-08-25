@@ -37,9 +37,20 @@ link_configs() {
 
   ln -sfn "${DOTFILES}/nvim" "${CONFIG}/nvim"
   ln -sfn "${DOTFILES}/tmux" "${CONFIG}/tmux"
-  ln -sf "${DOTFILES}/zsh/.zshrc" "${HOME}/.zshrc"
   ln -sf "${DOTFILES}/zsh/.p10k.zsh" "${HOME}/.p10k.zsh"
   ln -sfn "${DOTFILES}/bin" "${HOME}/bin"
+}
+
+# ~/.zshrc stays a real file owned by Lima, which appends a PATH block to
+# .profile, .bashrc and .zshrc on every boot unless its marker is already
+# there. Symlinking it into the repo would land that block in tracked files,
+# so the repo config is sourced from Lima's file instead.
+link_zshrc() {
+  local source_line="source ${DOTFILES}/zsh/.zshrc"
+
+  if ! grep -qxF "$source_line" "${HOME}/.zshrc" 2>/dev/null; then
+    echo "$source_line" >>"${HOME}/.zshrc"
+  fi
 }
 
 link_claude_config() {
@@ -88,6 +99,7 @@ install_nvim_plugins() {
 
 require_dotfiles
 link_configs
+link_zshrc
 link_claude_config
 install_oh_my_zsh
 install_tmux_plugins
