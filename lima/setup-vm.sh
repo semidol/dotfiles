@@ -27,6 +27,19 @@ start_instance() {
   fi
 }
 
+# sshd exports SHELL from the passwd entry as it was when the connection was
+# established, and Lima connects before provisioning runs chsh. Every session
+# multiplexed over that connection then reports bash, which is what tmux uses
+# for new panes. Dropping it makes the next one read the provisioned shell.
+reset_ssh_connection() {
+  local ssh_config host
+
+  ssh_config="$(limactl list "$INSTANCE" --format '{{.SSHConfigFile}}')"
+  host="$(awk '/^Host /{print $2; exit}' "$ssh_config")"
+
+  ssh -F "$ssh_config" -O exit "$host" 2>/dev/null || true
+}
+
 # A remote left over from a previous instance points at a repository that no
 # longer exists, so the guest side decides whether setup is needed.
 guest_repo_exists() {
@@ -52,5 +65,6 @@ bootstrap_dotfiles() {
 
 create_instance
 start_instance
+reset_ssh_connection
 push_dotfiles
 bootstrap_dotfiles
