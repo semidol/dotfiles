@@ -27,11 +27,19 @@ start_instance() {
   fi
 }
 
+# A remote left over from a previous instance points at a repository that no
+# longer exists, so the guest side decides whether setup is needed.
+guest_repo_exists() {
+  limactl shell "$INSTANCE" sh -c "test -d \"\$HOME/${GUEST_DOTFILES}/.git\""
+}
+
 push_dotfiles() {
   local branch
   branch="$(git -C "$DOTFILES" branch --show-current)"
 
-  if ! git -C "$DOTFILES" remote get-url "$REMOTE" >/dev/null 2>&1; then
+  if ! guest_repo_exists; then
+    git -C "$DOTFILES" remote remove "$REMOTE" 2>/dev/null || true
+
     (cd "$DOTFILES" && "${DOTFILES}/bin/vm-remote" add --vm "$INSTANCE" --path "$GUEST_DOTFILES")
   fi
 
