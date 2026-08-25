@@ -11,7 +11,7 @@ git remote pointed at the VM itself.
 ## Daily use
 
 ```sh
-devsh        # zsh inside the VM (alias for limactl shell --shell /usr/bin/zsh dev)
+vm           # zsh inside the VM, or `vm <instance>` for another one
 tmux-pick    # pick a project, opens a tmux session with nvim + claude-tuned
 ```
 

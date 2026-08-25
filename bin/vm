@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Opens a zsh session inside a Lima VM.
+#
+# limactl picks its own shell regardless of the guest's login shell, so it is
+# passed explicitly.
+set -euo pipefail
+
+readonly INSTANCE="${1:-dev}"
+readonly GUEST_SHELL="/usr/bin/zsh"
+
+exec limactl shell --shell "$GUEST_SHELL" "$INSTANCE"
