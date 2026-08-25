@@ -17,12 +17,17 @@ readonly CLAUDE_HOME="${HOME}/.claude"
 # entries are symlinked and the directory itself stays writable.
 readonly CLAUDE_CONFIG_ENTRIES=(
   CLAUDE.md
-  settings.json
   keybindings.json
   statusline.sh
   rules
   agents
   skills
+)
+
+# Claude rewrites settings.json as it runs, so it gets a copy of its own
+# rather than a symlink that would carry those writes into the repo.
+readonly CLAUDE_COPIED_ENTRIES=(
+  settings.json
 )
 
 require_dotfiles() {
@@ -60,6 +65,11 @@ link_claude_config() {
   for entry in "${CLAUDE_CONFIG_ENTRIES[@]}"; do
     rm -rf "${CLAUDE_HOME}/${entry}"
     ln -sfn "${DOTFILES}/claude/${entry}" "${CLAUDE_HOME}/${entry}"
+  done
+
+  for entry in "${CLAUDE_COPIED_ENTRIES[@]}"; do
+    rm -rf "${CLAUDE_HOME}/${entry}"
+    cp "${DOTFILES}/claude/${entry}" "${CLAUDE_HOME}/${entry}"
   done
 }
 
