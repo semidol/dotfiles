@@ -17,22 +17,33 @@ init_guest_repo() {
       git init -b ${BRANCH} ${GUEST_DOTFILES}
     fi
 
+    # The host pushes straight into the checked-out branch, so receiving a
+    # push has to update the working tree instead of only moving the ref.
     git -C ${GUEST_DOTFILES} config receive.denyCurrentBranch updateInstead
   "
 }
 
-# Lima rewrites this config, including the forwarded port, on every restart.
-# Pointing git at it avoids duplicating the key and host-checking options that
-# a bare ssh:// URL would miss.
-readonly SSH_CONFIG="${HOME}/.lima/${INSTANCE}/ssh.config"
-readonly SSH_HOST="lima-${INSTANCE}"
-
-configure_remote() {
-  git remote remove "$REMOTE" 2>/dev/null || true
-  git remote add "$REMOTE" "${SSH_HOST}:${GUEST_DOTFILES#\~/}"
+# Lima regenerates this config, including the forwarded port, on every restart.
+# Reusing it keeps the identity file and host-key options in one place instead
+# of duplicating them into a ssh:// URL.
+ssh_config_path() {
+  limactl list "$INSTANCE" --format '{{.SSHConfigFile}}'
 }
 
+ssh_host_alias() {
+  awk '/^Host /{print $2; exit}' "$1"
+}
+
+configure_remote() {
+  local host="$1"
+
+  git remote remove "$REMOTE" 2>/dev/null || true
+  git remote add "$REMOTE" "${host}:${GUEST_DOTFILES#\~/}"
+}
+
+readonly SSH_CONFIG="$(ssh_config_path)"
+
 init_guest_repo
-configure_remote
+configure_remote "$(ssh_host_alias "$SSH_CONFIG")"
 
 GIT_SSH_COMMAND="ssh -F ${SSH_CONFIG}" git push "$REMOTE" "$BRANCH"
