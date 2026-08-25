@@ -65,12 +65,12 @@ install_neovim() {
   ln -sf "${NEOVIM_PREFIX}/bin/nvim" /usr/local/bin/nvim
 }
 
-# The login shell is deliberately left as bash. Lima writes its PATH block into
-# the login shell's rc file, and pointing that at zsh would make it edit the
-# tracked ~/.zshrc, dirtying the dotfiles repo. Interactive sessions get zsh
-# from `limactl shell --shell /usr/bin/zsh`.
 configure_user() {
   usermod -aG docker "$USER_NAME"
+
+  # tmux starts its panes with the login shell, so it has to be zsh even
+  # though `vm` passes --shell for the outer session.
+  chsh -s "$(command -v zsh)" "$USER_NAME"
 }
 
 # Lima mirrors the host UID, which is not necessarily 1000, but it always
