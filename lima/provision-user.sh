@@ -19,6 +19,8 @@ install_node() {
   fnm install "$NODE_VERSION"
   fnm default "$NODE_VERSION"
 
+  corepack enable
+
   npm install -g @anthropic-ai/claude-code
 }
 
