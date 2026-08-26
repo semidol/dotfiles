@@ -12,7 +12,11 @@ fi
 # A fresh VM has an empty database, and zoxide would otherwise open an empty
 # picker that has to be dismissed before the fallback runs.
 if zoxide query --list 2>/dev/null | grep -q .; then
-    DIR=$(_ZO_FZF_OPTS="--prompt='Select project (recent) > '" zoxide query -i 2>/dev/null || true)
+    # _ZO_FZF_OPTS replaces zoxide's own fzf flags rather than adding to them,
+    # and zoxide feeds fzf NUL-separated "score<TAB>path" records. Dropping
+    # --read0/--delimiter/--nth renders the list as one unreadable blob, so
+    # override the prompt through FZF_DEFAULT_OPTS instead.
+    DIR=$(FZF_DEFAULT_OPTS="--prompt=Select project (recent) > " zoxide query -i 2>/dev/null || true)
 fi
 
 # 2. Fallback: scan the project root if zoxide had nothing or was dismissed
