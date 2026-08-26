@@ -75,6 +75,18 @@ if [ -f "$REFRESHER" ]; then
   ( bash "$REFRESHER" "$parent_pid" "$rate_limits_json" </dev/null >/dev/null 2>&1 & ) 2>/dev/null
 fi
 
+# Prints a file's mtime as a unix epoch, or 0 if it can't be read.
+# GNU stat uses `-c %Y`; BSD/macOS stat uses `-f %m`. On GNU, `-f` means
+# "filesystem info" and exits 0 with unrelated output, so GNU is tried
+# first rather than relying on a `||` fallback to sort the two apart.
+file_mtime() {
+  local path="$1"
+
+  stat -c '%Y' "$path" 2>/dev/null \
+    || stat -f '%m' "$path" 2>/dev/null \
+    || echo 0
+}
+
 # Formats a resets_at unix epoch as a compact countdown ("3h19m" or "19m").
 format_resets_at() {
   local resets_at="$1"
@@ -101,7 +113,7 @@ format_resets_at() {
 # --- API/subscription usage (cached, never blocks) ---
 api_text=""
 if [ -f "$CACHE_FILE" ]; then
-  cache_mtime="$(stat -f '%m' "$CACHE_FILE" 2>/dev/null || stat -c '%Y' "$CACHE_FILE" 2>/dev/null || echo 0)"
+  cache_mtime="$(file_mtime "$CACHE_FILE")"
   now="$(date +%s)"
   cache_age=$(( now - cache_mtime ))
 
