@@ -19,6 +19,7 @@ readonly CLAUDE_CONFIG_ENTRIES=(
   CLAUDE.md
   keybindings.json
   statusline.sh
+  statusline-usage-refresh.sh
   rules
   agents
   skills
