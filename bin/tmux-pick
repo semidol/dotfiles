@@ -15,18 +15,21 @@ RECENT=$(zoxide query --list 2>/dev/null || true)
 
 # Escape makes fzf exit non-zero, which set -e would treat as a failure.
 if [ -n "$RECENT" ]; then
-    DIR=$(printf '%s\n' "$RECENT" | fzf --prompt="Select project (recent) > ") || exit 0
-else
+    DIR=$(printf '%s\n' "$RECENT" | fzf --prompt="Select project (recent) > ") || true
+fi
+
+# 2. Escaping the recent list means "show me everything instead".
+if [ -z "$DIR" ]; then
     DIR=$(find "$PROJECT_ROOT" -mindepth 1 -maxdepth 3 -type d \
         -not -path '*/.git/*' |
-        fzf --prompt="Select project (all) > ") || exit 0
+        fzf --prompt="Select project (all) > ") || true
 fi
 
 [ -z "$DIR" ] && exit 0
 
-# 2. Ensure zoxide learns it
+# 3. Ensure zoxide learns it
 zoxide add "$DIR" 2>/dev/null || true
 
-# 3. Enter project and launch tmux
+# 4. Enter project and launch tmux
 cd "$DIR"
 exec tmux-at .
