@@ -8,11 +8,14 @@ if [ ! -d "$PROJECT_ROOT" ]; then
     PROJECT_ROOT="$HOME/projects"
 fi
 
-# 1. Try zoxide interactive picker
-# Force fullscreen and add descriptive prompt for zoxide's fzf
-DIR=$(_ZO_FZF_OPTS="--prompt='Select project (recent) > '" zoxide query -i 2>/dev/null || true)
+# 1. Try zoxide interactive picker, but only when it has entries to offer.
+# A fresh VM has an empty database, and zoxide would otherwise open an empty
+# picker that has to be dismissed before the fallback runs.
+if zoxide query --list 2>/dev/null | grep -q .; then
+    DIR=$(_ZO_FZF_OPTS="--prompt='Select project (recent) > '" zoxide query -i 2>/dev/null || true)
+fi
 
-# 2. Fallback: scan ~/IT if zoxide returns nothing
+# 2. Fallback: scan the project root if zoxide had nothing or was dismissed
 if [ -z "$DIR" ]; then
     DIR=$(find "$PROJECT_ROOT" -mindepth 1 -maxdepth 3 -type d \
         -not -path '*/.git/*' |
