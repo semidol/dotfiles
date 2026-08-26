@@ -37,8 +37,12 @@ alias gac="git-ai-commit"
 alias gs="git status"
 
 # ── Keybindings ───────────────────────────────────────────────────────────────
-# Bind F12 (triggered by Cmd+Shift+N) to run tmux-pick
-bindkey -s '^[[24~' 'tmux-pick\n'
+# Bind F12 (triggered by Cmd+Shift+N) to run tmux-pick.
+# Inside tmux this is already handled by tmux.conf; binding it here too would
+# open the picker twice, so only bind it for a bare shell.
+if [ -z "$TMUX" ]; then
+    bindkey -s '^[[24~' 'tmux-pick\n'
+fi
 
 bindkey '\e[1;3D' vi-backward-word
 bindkey '\e[1;3C' vi-forward-word
