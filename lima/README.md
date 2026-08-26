@@ -33,6 +33,16 @@ node (fnm), foundry, neovim, tmux and the Claude CLI.
 
 ## Working on a project
 
+`vm-remote` points the remote at the VM with git's `ext::` transport, which
+git refuses to use until it is allowed once on the host:
+
+```sh
+git config --global protocol.ext.allow user
+```
+
+This loosens a safety default: `ext::` runs whatever command a remote URL
+names, and `user` only narrows that to remotes you act on yourself.
+
 The VM has no GitHub access, so a repository gets there from the host:
 
 ```sh
