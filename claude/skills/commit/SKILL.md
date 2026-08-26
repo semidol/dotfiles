@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Commit pending changes. Splits them into one or more Conventional Commits. Use when the user asks to commit, stage and commit, or "make a commit" without specifying message details.
+description: Creates all commits in this repo. Splits pending changes into one or more Conventional Commits. Use whenever a commit is about to be made — asked directly ("commit", "stage and commit", "make a commit"), or reached at the end of some other task. Never write a commit message or run git commit outside this skill.
 ---
 
 # Commit
