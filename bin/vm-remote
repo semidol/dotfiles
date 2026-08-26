@@ -50,10 +50,14 @@ require_running_instance() {
 # remote, so remotes such as origin keep using plain SSH. Going through
 # limactl also avoids depending on Lima's SSH config layout or its forwarded
 # port, both of which change whenever the VM is recreated.
+#
+# git splits the command on whitespace rather than handing it to a shell, so
+# quotes would reach the guest literally and a path with spaces cannot be
+# expressed here.
 guest_url() {
   local instance="$1" path="$2"
 
-  echo "ext::limactl shell ${instance} sh -c \"%S '${path}'\""
+  echo "ext::limactl shell ${instance} %S ${path}"
 }
 
 guest_home() {
