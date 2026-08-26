@@ -44,14 +44,16 @@ require_running_instance() {
     die "Lima instance ${instance} is ${status,,}, start it with: limactl start ${instance}"
 }
 
-# git invokes its transport as `<cmd> <host> <git-receive-pack ...>`, so the
-# host argument is dropped and the rest handed to a shell in the guest. Going
-# through limactl avoids depending on Lima's SSH config layout or its
-# forwarded port, both of which change across restarts.
-guest_transport() {
-  local instance="$1"
+# git's ext:: transport runs a command instead of connecting to a host, and
+# substitutes %S with the service it needs (git-upload-pack or
+# git-receive-pack). Carrying the transport in the URL keeps it scoped to this
+# remote, so remotes such as origin keep using plain SSH. Going through
+# limactl also avoids depending on Lima's SSH config layout or its forwarded
+# port, both of which change whenever the VM is recreated.
+guest_url() {
+  local instance="$1" path="$2"
 
-  echo "f(){ shift; limactl shell ${instance} sh -c \"\$*\"; }; f"
+  echo "ext::limactl shell ${instance} sh -c \"%S '${path}'\""
 }
 
 guest_home() {
@@ -113,8 +115,7 @@ cmd_add() {
 
   create_guest_repo "$instance" "$guest_path" "$branch"
 
-  git remote add "$remote" "vm:${guest_path}"
-  git config core.sshCommand "$(guest_transport "$instance")"
+  git remote add "$remote" "$(guest_url "$instance" "$guest_path")"
 }
 
 case "${1:-}" in
