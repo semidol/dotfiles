@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# Copies an image from the host clipboard into a Lima VM.
+#
+# The guest has no clipboard: text pasted into a terminal arrives as
+# keystrokes over SSH, and an image has no such representation. This carries
+# it over as a file instead, and prints the guest path to hand to an agent.
+#
+# The transfer is one-way and host-initiated, so the guest gains no reach into
+# the host.
+set -euo pipefail
+
+readonly DEFAULT_INSTANCE="dev"
+readonly GUEST_DIR="/tmp/vm-img"
+readonly FILE_PREFIX="paste"
+
+usage() {
+  cat <<'EOF'
+usage: vm-img [--vm <instance>]
+
+Writes the host clipboard image into /tmp/vm-img inside the VM and prints the
+path it landed on.
+
+  --vm <instance>  Lima instance to use (default: dev)
+EOF
+}
+
+die() {
+  echo >&2 "vm-img: $1"
+  exit 1
+}
+
+require_pngpaste() {
+  command -v pngpaste >/dev/null 2>&1 ||
+    die "pngpaste is not installed, install it with: brew install pngpaste"
+}
+
+require_running_instance() {
+  local instance="$1" status
+
+  status="$(limactl list "$instance" --format '{{.Status}}' 2>/dev/null)" ||
+    die "no such Lima instance: ${instance}"
+
+  [[ "$status" == "Running" ]] ||
+    die "Lima instance ${instance} is ${status,,}, start it with: limactl start ${instance}"
+}
+
+# pngpaste fails when the clipboard holds anything but an image, which is the
+# common mistake of copying a file in Finder rather than its contents.
+capture_clipboard() {
+  local destination="$1"
+
+  pngpaste "$destination" 2>/dev/null ||
+    die "the clipboard holds no image"
+}
+
+main() {
+  local instance="$DEFAULT_INSTANCE"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --vm) instance="${2:?--vm needs a value}"; shift 2 ;;
+      -h|--help) usage; exit 0 ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+
+  require_pngpaste
+  require_running_instance "$instance"
+
+  local name="${FILE_PREFIX}-$(date +%Y%m%d-%H%M%S).png"
+  local staged="$(mktemp -d)/${name}"
+
+  capture_clipboard "$staged"
+
+  # /tmp/vm-img is not guaranteed to survive a reboot, and creating it costs
+  # one shell either way.
+  limactl shell "$instance" mkdir -p "$GUEST_DIR"
+  limactl copy "$staged" "${instance}:${GUEST_DIR}/${name}"
+
+  rm -rf "$(dirname "$staged")"
+
+  echo "${GUEST_DIR}/${name}"
+}
+
+main "$@"
