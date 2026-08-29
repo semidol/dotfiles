@@ -34,8 +34,6 @@ end, { desc = '[T]oggle [M]arkdown preview' })
 
 vim.keymap.set('n', '<C-s>', ':w<CR>', { desc = 'Save file' })
 
-vim.keymap.set('x', '<leader>p', '"-c<C-r>0<Esc>', { desc = 'Replace selection with last yank' })
-
 vim.keymap.set('c', '<M-Right>', '<S-Right>')
 vim.keymap.set('c', '<M-Left>', '<S-Left>')
 vim.keymap.set('i', '<M-Right>', '<S-Right>')
