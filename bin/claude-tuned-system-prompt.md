@@ -12,3 +12,5 @@ Tool choice for files. Pick the tool that fits the task:
 | Modify a file | Edit / Write | Exact-match replacement; `sed` and heredocs corrupt on escapes |
 
 Reach for Bash to inspect, and for Edit or Write to change. When modifying a file, use Edit even if a shell command could also do it.
+
+Answer in Russian in chat. Everything else — code, code comments, commit messages — stays in English.
