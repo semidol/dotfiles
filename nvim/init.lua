@@ -39,18 +39,27 @@ vim.keymap.set('c', '<M-Left>', '<S-Left>')
 vim.keymap.set('i', '<M-Right>', '<S-Right>')
 vim.keymap.set('i', '<M-Left>', '<S-Left>')
 
+local function current_file_path()
+  local file_path = vim.fn.expand '%:p'
+  local home = vim.loop.os_homedir()
+
+  if home and file_path:sub(1, #home) == home then
+    return '~' .. file_path:sub(#home + 1)
+  end
+
+  return file_path
+end
+
 -- Copy file path and line number to clipboard
 vim.keymap.set('n', '<leader>C', function()
-  local file_path = vim.fn.expand '%:p'
-  local line_number = vim.fn.line '.'
-  local path_with_line = file_path .. ':' .. line_number
+  local path_with_line = current_file_path() .. ':' .. vim.fn.line '.'
   vim.fn.setreg('+', path_with_line)
   print('Copied: ' .. path_with_line)
 end, { desc = '[c]opy file path with line number' })
 
--- Copy file path and line number to clipboard
+-- Copy file path to clipboard
 vim.keymap.set('n', '<leader>c', function()
-  local file_path = vim.fn.expand '%:p'
+  local file_path = current_file_path()
   vim.fn.setreg('+', file_path)
   print('Copied: ' .. file_path)
 end, { desc = '[c]opy file path' })
