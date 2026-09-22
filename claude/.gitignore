@@ -1,0 +1,3 @@
+# Claude Code downloads bundled skills from the account into ~/.claude/skills,
+# which is symlinked here, so its writes land in the repo.
+skills/synced/
