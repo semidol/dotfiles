@@ -26,3 +26,12 @@ vim.o.inccommand = 'split'
 vim.o.guicursor = ''
 vim.o.scrolloff = 10
 vim.o.confirm = true
+
+-- Cyrillic input lives inside Vim, so the OS layout can stay English
+-- and normal-mode motions keep working. Toggle with <C-^> in insert mode.
+local IM_DISABLED = 0
+local IM_FOLLOWS_INSERT = -1
+
+vim.o.keymap = 'russian-jcukenwin'
+vim.o.iminsert = IM_DISABLED
+vim.o.imsearch = IM_FOLLOWS_INSERT
