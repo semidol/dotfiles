@@ -29,7 +29,7 @@ because it runs in here.
 
 Creates the instance, starts it, pushes the dotfiles in and bootstraps them.
 Safe to re-run: an existing instance is reused. Provisioning installs docker,
-node (fnm), foundry, neovim, tmux and the Claude CLI.
+node (fnm), foundry, rust (rustup), neovim, tmux and the Claude CLI.
 
 ## Working on a project
 
@@ -69,7 +69,7 @@ the VM simply has no way to reach it.
 | `setup-vm.sh` | Creates the VM and installs dotfiles into it |
 | `provision-firewall.sh` | Rejects RFC1918 destinations; runs on every boot |
 | `provision-system.sh` | Root-level toolchain, runs once at creation |
-| `provision-user.sh` | Node and foundry, runs once at creation |
+| `provision-user.sh` | Node, foundry and rust, runs once at creation |
 | `bootstrap-dotfiles.sh` | Links configs, installs plugins; run in the guest |
 
 `bin/vm-remote` lives outside this directory because it is used from any

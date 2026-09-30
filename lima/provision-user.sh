@@ -30,12 +30,17 @@ install_foundry() {
   "${FOUNDRY_BIN_DIR}/foundryup"
 }
 
+install_rust() {
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+}
+
 if [[ -f "$STAMP" ]]; then
   exit 0
 fi
 
 install_node
 install_foundry
+install_rust
 
 mkdir -p "$(dirname "$STAMP")"
 touch "$STAMP"
