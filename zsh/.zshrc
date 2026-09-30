@@ -20,6 +20,7 @@ export PATH="$HOME/utils:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 
 export PATH="$HOME/.foundry/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
 
 # fnm is installed under the home directory in the dev VM and via Homebrew on
 # macOS, so put the former on PATH before looking it up.
