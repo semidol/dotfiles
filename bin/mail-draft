@@ -1,0 +1,233 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["pyyaml", "pypandoc-binary"]
+# ///
+"""Build an email (.eml) from a Markdown letter and print it to stdout.
+
+The letter is Markdown with YAML frontmatter; no other keys are accepted:
+
+    ---
+    to: Name <addr@example.com>     # one address or a list
+    subject: Text
+    attachments:                    # optional; relative to the letter
+      - file.pdf
+    ---
+
+    Body in Markdown.
+
+pandoc renders the body to HTML, and the HTML to plain text with links
+collected at the bottom; both go into a multipart/alternative.
+
+Usage: mail-draft [--check] LETTER.md
+--check only validates the letter and prints nothing on success.
+"""
+
+import argparse
+import mimetypes
+import sys
+from email.message import EmailMessage
+from email.utils import formataddr, formatdate, getaddresses
+from pathlib import Path
+
+import pypandoc
+import yaml
+
+DEFAULT_MIME_TYPE = "application/octet-stream"
+
+FRONTMATTER_DELIMITER = "---"
+REQUIRED_KEYS = {"to", "subject"}
+ALLOWED_KEYS = REQUIRED_KEYS | {"attachments"}
+LINE_BREAKS = ("\r", "\n")
+
+BYTES_PER_MB = 1024 * 1024
+GMAIL_ATTACHMENTS_LIMIT_MB = 25
+MAX_ATTACHMENTS_BYTES = GMAIL_ATTACHMENTS_LIMIT_MB * BYTES_PER_MB
+
+MARKDOWN_FORMAT = "gfm"
+HTML_FORMAT = "html"
+PLAIN_FORMAT = "plain"
+PLAIN_OPTIONS = ("--reference-links",)
+
+
+class LetterError(Exception):
+    pass
+
+
+def split_frontmatter(text):
+    lines = text.splitlines()
+
+    if not lines or lines[0].strip() != FRONTMATTER_DELIMITER:
+        raise LetterError("letter must start with '---' frontmatter")
+
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == FRONTMATTER_DELIMITER:
+            return "\n".join(lines[1:index]), "\n".join(lines[index + 1 :])
+
+    raise LetterError("frontmatter is not closed with '---'")
+
+
+def parse_meta(source):
+    try:
+        meta = yaml.safe_load(source)
+    except yaml.YAMLError as error:
+        raise LetterError(f"invalid frontmatter YAML: {error}") from error
+
+    if not isinstance(meta, dict):
+        raise LetterError("frontmatter must be a mapping")
+
+    unknown = set(meta) - ALLOWED_KEYS
+    if unknown:
+        raise LetterError(f"unknown keys: {', '.join(sorted(map(str, unknown)))}")
+
+    missing = REQUIRED_KEYS - set(meta)
+    if missing:
+        raise LetterError(f"missing keys: {', '.join(sorted(missing))}")
+
+    return meta
+
+
+def single_line(value, field):
+    if not isinstance(value, str):
+        raise LetterError(f"{field}: expected a string, got {value!r}")
+
+    value = value.strip()
+
+    if not value:
+        raise LetterError(f"{field}: must not be empty")
+
+    if any(char in value for char in LINE_BREAKS):
+        raise LetterError(f"{field}: must be a single line")
+
+    return value
+
+
+def as_list(value):
+    return value if isinstance(value, list) else [value]
+
+
+def parse_address(text):
+    parsed = getaddresses([text])
+
+    if len(parsed) != 1:
+        raise LetterError(f"to: expected one address per entry, got {text!r}")
+
+    name, address = parsed[0]
+    local, _, domain = address.partition("@")
+
+    if address.count("@") != 1 or not local or not domain or " " in address:
+        raise LetterError(f"to: invalid address {text!r}")
+
+    return name, address
+
+
+def parse_recipients(value):
+    items = as_list(value)
+
+    if not items:
+        raise LetterError("to: must not be empty")
+
+    recipients = []
+    seen = set()
+
+    for item in items:
+        name, address = parse_address(single_line(item, "to"))
+
+        if address.lower() in seen:
+            raise LetterError(f"to: duplicate address {address}")
+
+        seen.add(address.lower())
+        recipients.append(formataddr((name, address)))
+
+    return recipients
+
+
+def parse_attachments(value, base):
+    if value is None:
+        return []
+
+    if not isinstance(value, list):
+        raise LetterError("attachments: expected a list")
+
+    paths = []
+
+    for item in value:
+        path = (base / single_line(item, "attachments")).resolve()
+
+        if not path.is_file():
+            raise LetterError(f"attachments: no such file {path}")
+
+        if path in paths:
+            raise LetterError(f"attachments: duplicate file {path}")
+
+        paths.append(path)
+
+    total = sum(path.stat().st_size for path in paths)
+    if total > MAX_ATTACHMENTS_BYTES:
+        raise LetterError(f"attachments: over {GMAIL_ATTACHMENTS_LIMIT_MB} MB in total")
+
+    return paths
+
+
+def attach(message, path):
+    mime_type, _ = mimetypes.guess_type(path.name)
+    maintype, subtype = (mime_type or DEFAULT_MIME_TYPE).split("/")
+
+    message.add_attachment(
+        path.read_bytes(), maintype=maintype, subtype=subtype, filename=path.name
+    )
+
+
+def build(letter):
+    frontmatter, body = split_frontmatter(letter.read_text())
+    meta = parse_meta(frontmatter)
+
+    recipients = parse_recipients(meta["to"])
+    subject = single_line(meta["subject"], "subject")
+    attachments = parse_attachments(meta.get("attachments"), letter.parent)
+
+    body = body.strip()
+    if not body:
+        raise LetterError("body must not be empty")
+
+    html = pypandoc.convert_text(body, HTML_FORMAT, format=MARKDOWN_FORMAT)
+    plain = pypandoc.convert_text(
+        html, PLAIN_FORMAT, format=HTML_FORMAT, extra_args=PLAIN_OPTIONS
+    )
+
+    message = EmailMessage()
+    message["To"] = ", ".join(recipients)
+    message["Subject"] = subject
+    message["Date"] = formatdate(localtime=True)
+
+    message.set_content(plain)
+    message.add_alternative(html, subtype="html")
+
+    for path in attachments:
+        attach(message, path)
+
+    return message
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--check", action="store_true", help="only validate")
+    parser.add_argument("letter", type=lambda value: Path(value).expanduser())
+
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    try:
+        message = build(args.letter)
+    except LetterError as error:
+        sys.exit(f"{args.letter}: {error}")
+
+    if not args.check:
+        sys.stdout.buffer.write(message.as_bytes())
+
+
+if __name__ == "__main__":
+    sys.exit(main())
