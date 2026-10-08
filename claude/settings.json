@@ -1,7 +1,8 @@
 {
   "env": {
     "EDITOR": "nvim",
-    "VISUAL": "nvim"
+    "VISUAL": "nvim",
+    "DISABLE_AUTOUPDATER": "1"
   },
   "permissions": {
     "allow": [
