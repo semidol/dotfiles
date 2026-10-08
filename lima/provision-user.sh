@@ -34,6 +34,10 @@ install_rust() {
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 }
 
+install_uv() {
+  curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh
+}
+
 if [[ -f "$STAMP" ]]; then
   exit 0
 fi
@@ -41,6 +45,7 @@ fi
 install_node
 install_foundry
 install_rust
+install_uv
 
 mkdir -p "$(dirname "$STAMP")"
 touch "$STAMP"
