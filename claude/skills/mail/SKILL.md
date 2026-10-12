@@ -1,7 +1,6 @@
 ---
 name: mail
-description: Write an email as a Markdown letter that the host can send
-disable-model-invocation: true
+description: Write an email as a Markdown letter the host can send. Use whenever an email is discussed or needs writing, replying, or editing.
 ---
 
 # Mail
