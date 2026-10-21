@@ -96,8 +96,6 @@ local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
 
 require('lazy').setup({
-  'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
-
   {
     'lewis6991/gitsigns.nvim',
     opts = {
