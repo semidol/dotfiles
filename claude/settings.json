@@ -45,7 +45,8 @@
       "AskUserQuestion",
       "CronCreate",
       "CronDelete",
-      "CronList"
+      "CronList",
+      "SendFeedback"
     ]
   },
   "model": "opus",
