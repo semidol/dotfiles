@@ -999,37 +999,7 @@ require('lazy').setup({
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
-  -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-  --    This is the easiest way to modularize your config.
-  --
-  --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
-  --
-  -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
-  -- Or use telescope!
-  -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
-  -- you can continue same window with `<space>sr` which resumes last telescope search
-
-  {
-    'navarasu/onedark.nvim',
-    priority = 1000, -- make sure to load this before all the other start plugins
-    config = function()
-      require('onedark').setup {
-        style = 'dark',
-
-        code_style = {
-          comments = 'none',
-        },
-
-        colors = {
-          fg = '#ABB2BF',
-          light_grey = '#a7aab0',
-          bg0 = '#1E1E1E', -- main editor background
-        },
-      }
-      require('onedark').load()
-    end,
-  },
+  { import = 'plugins' },
 
   {
     'lukas-reineke/indent-blankline.nvim',
