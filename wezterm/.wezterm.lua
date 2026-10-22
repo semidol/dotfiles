@@ -35,6 +35,11 @@ local reserved_keys = {
 	"v", -- Cmd+V for paste
 }
 
+local HYPER_MODS = "CTRL|OPT|CMD"
+
+-- Hyper keys used by tmux for window (q..p) and pane (z..v) switching
+local hyper_tmux_keys = { "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "z", "x", "c", "v" }
+
 -- Map all other Cmd keys to Ctrl
 local function map_cmd_to_ctrl()
 	local keys = {}
@@ -110,6 +115,15 @@ local function map_cmd_to_ctrl()
 		mods = "CMD|SHIFT",
 		action = wezterm.action.SendString("\x1b[24~"), -- F12 key sequence
 	})
+
+	-- Forward Hyper + key to tmux as custom sequences (see user-keys in tmux.conf)
+	for _, key in ipairs(hyper_tmux_keys) do
+		table.insert(keys, {
+			key = key,
+			mods = HYPER_MODS,
+			action = wezterm.action.SendString("\x1b[hyper-" .. key .. "~"),
+		})
+	end
 
 	return keys
 end
