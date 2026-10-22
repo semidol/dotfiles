@@ -33,7 +33,9 @@ return {
 
     -- [[ Configure Telescope ]]
     -- See `:help telescope` and `:help telescope.setup()`
-    require('telescope').setup {
+    local telescope = require 'telescope'
+
+    telescope.setup {
       -- You can put your default mappings / updates / etc. in here
       --  All the info you're looking for is in `:help telescope.setup()`
       --
@@ -54,13 +56,13 @@ return {
     }
 
     -- Enable Telescope extensions if they are installed
-    pcall(require('telescope').load_extension, 'fzf')
-    pcall(require('telescope').load_extension, 'ui-select')
-    require('telescope').load_extension 'live_grep_args'
+    pcall(telescope.load_extension, 'fzf')
+    pcall(telescope.load_extension, 'ui-select')
+    telescope.load_extension 'live_grep_args'
 
     -- See `:help telescope.builtin`
     local builtin = require 'telescope.builtin'
-    local extensions = require('telescope').extensions
+    local extensions = telescope.extensions
     vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
     vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
     vim.keymap.set('n', '<leader>sg', extensions.live_grep_args.live_grep_args, { desc = '[S]earch by [G]rep' })
