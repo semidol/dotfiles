@@ -73,32 +73,32 @@ return {
     vim.keymap.set('n', '<leader>sq', builtin.quickfix, { desc = '[S]earch [Q]uickfix list' })
     vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
-    vim.keymap.set('n', '<leader>p', function()
-      builtin.find_files { file_ignore_patterns = { '%.git/', 'lib/' }, hidden = true }
-    end, { desc = 'Find files' })
+    local actions = require 'telescope.actions'
+    local action_state = require 'telescope.actions.state'
 
-    vim.keymap.set('n', '<leader>sp', function()
-      builtin.find_files {
-        hidden = true,
-        no_ignore = true,
-        attach_mappings = function(prompt_bufnr, map)
-          map('i', '<C-f>', function()
-            local action_state = require 'telescope.actions.state'
-            local finders = require 'telescope.finders'
-            local search_dir = vim.fn.input 'Filter directory: '
-            if search_dir ~= '' then
-              local picker = action_state.get_current_picker(prompt_bufnr)
-              picker:refresh(
-                finders.new_oneshot_job(
-                  { 'fd', '--type', 'f', '--hidden', '--no-ignore', '.', search_dir },
-                  { entry_maker = require('telescope.make_entry').gen_from_file() }
-                )
-              )
-            end
-          end)
-          return true
-        end,
-      }
-    end, { desc = 'Find all files' })
+    local function find_files(opts)
+      opts = vim.tbl_extend('force', { file_ignore_patterns = { '%.git/' } }, opts)
+      opts.prompt_title = 'Find Files' .. (opts.hidden and ' [+hidden]' or '') .. (opts.no_ignore and ' [+ignored]' or '')
+
+      opts.attach_mappings = function(prompt_bufnr, map)
+        local function toggle(option)
+          return function()
+            local query = action_state.get_current_line()
+            actions.close(prompt_bufnr)
+            find_files(vim.tbl_extend('force', opts, { [option] = not opts[option], default_text = query }))
+          end
+        end
+
+        map({ 'i', 'n' }, '<a-i>', toggle 'no_ignore', { desc = 'toggle_ignored' })
+        map({ 'i', 'n' }, '<a-h>', toggle 'hidden', { desc = 'toggle_hidden' })
+        return true
+      end
+
+      builtin.find_files(opts)
+    end
+
+    vim.keymap.set('n', '<leader>p', function()
+      find_files {}
+    end, { desc = 'Find files' })
   end,
 }
