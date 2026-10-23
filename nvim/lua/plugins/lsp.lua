@@ -135,15 +135,5 @@ return {
         spacing = 2,
       },
     }
-
-    -- Setup jqls manually using new vim.lsp.config API (Neovim 0.11+)
-    vim.lsp.enable 'jqls'
-
-    -- Ensure .jq files are recognized
-    vim.filetype.add {
-      extension = {
-        jq = 'jq',
-      },
-    }
   end,
 }
