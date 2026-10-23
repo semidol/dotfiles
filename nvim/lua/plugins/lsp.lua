@@ -2,6 +2,7 @@ local mason_tools = {
   'eslint',
   'graphql',
   'lua_ls',
+  'rust_analyzer',
   'ts_ls',
   'stylua',
 }
