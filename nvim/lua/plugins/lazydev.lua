@@ -3,7 +3,7 @@ return {
   ft = 'lua',
   opts = {
     library = {
-      -- load luv (libuv) type definitions bundled with lua_ls when `vim.uv` is used
+      -- Load luvit types when the `vim.uv` word is found
       { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
     },
   },
