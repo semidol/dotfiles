@@ -26,6 +26,7 @@ vim.o.inccommand = 'split'
 vim.o.guicursor = ''
 vim.o.scrolloff = 10
 vim.o.confirm = true
+vim.o.clipboard = 'unnamedplus'
 
 -- Cyrillic input lives inside Vim, so the OS layout can stay English
 -- and normal-mode motions keep working. Toggle with <C-^> in insert mode.
