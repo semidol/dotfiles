@@ -106,32 +106,9 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
 
   { import = 'plugins' },
-
-  {
-    'lukas-reineke/indent-blankline.nvim',
-    main = 'ibl',
-    ---@module "ibl"
-    ---@type ibl.config
-    opts = {},
-    config = function()
-      local hooks = require 'ibl.hooks'
-      hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
-        vim.api.nvim_set_hl(0, 'IblScope', { fg = '#7d7d8c' })
-      end)
-      require('ibl').setup {
-        indent = { char = '▏', tab_char = '▏' },
-        scope = {
-          show_end = false,
-          show_start = false,
-          include = { node_type = { ['*'] = { '*' } } },
-        },
-      }
-    end,
-  },
 
   {
     'Aasim-A/scrollEOF.nvim',
