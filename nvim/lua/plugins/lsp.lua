@@ -5,6 +5,7 @@ local mason_tools = {
   'rust_analyzer',
   'ts_ls',
   'stylua',
+  'tree-sitter-cli',
 }
 
 return {
