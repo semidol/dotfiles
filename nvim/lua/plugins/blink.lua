@@ -21,12 +21,6 @@ return { -- Autocompletion
       ['<C-d>'] = { 'scroll_documentation_down', 'fallback' },
     },
 
-    completion = {
-      -- By default, you may press `<c-space>` to show the documentation.
-      -- Optionally, set `auto_show = true` to show the documentation after a delay.
-      documentation = { auto_show = false, auto_show_delay_ms = 500 },
-    },
-
     sources = {
       default = { 'lsp', 'path', 'snippets', 'lazydev' },
       providers = {
