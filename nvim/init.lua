@@ -111,12 +111,6 @@ require('lazy').setup({
   { import = 'plugins' },
 
   {
-    'Aasim-A/scrollEOF.nvim',
-    event = { 'CursorMoved', 'WinScrolled' },
-    opts = {},
-  },
-
-  {
     'MeanderingProgrammer/render-markdown.nvim',
     ft = { 'markdown' },
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
