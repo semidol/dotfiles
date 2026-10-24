@@ -15,7 +15,8 @@ return { -- Autocompletion
       -- <c-e>: Hide menu
       -- <c-k>: Toggle signature help
       preset = 'enter',
-      -- Scroll documentation window
+
+      -- Replace default <C-b>/<C-f> docs scrolling: <C-b> is the tmux prefix
       ['<C-u>'] = { 'scroll_documentation_up', 'fallback' },
       ['<C-d>'] = { 'scroll_documentation_down', 'fallback' },
     },
