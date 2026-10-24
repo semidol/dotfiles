@@ -6,7 +6,7 @@ return {
     -- this setting is independent of vim.o.timeoutlen
     delay = 400,
     icons = {
-      keys = vim.g.have_nerd_font and {} or {
+      keys = {
         Up = '<Up> ',
         Down = '<Down> ',
         Left = '<Left> ',
