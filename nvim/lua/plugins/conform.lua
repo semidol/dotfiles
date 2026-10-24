@@ -26,19 +26,9 @@ return {
       typescript = { 'prettier' },
       graphql = { 'prettier' },
       json = { 'prettier' },
-      solidity = { 'forge' },
+      solidity = { 'forge_fmt' },
       -- rustfmt comes from the rustup toolchain, not mason
       rust = { 'rustfmt' },
-    },
-    formatters = {
-      prettier = {
-        prepend_args = { '--ignore-path', '.prettierignore' },
-      },
-      forge = {
-        command = 'forge',
-        args = { 'fmt', '$FILENAME' },
-        stdin = false,
-      },
     },
   },
 }
