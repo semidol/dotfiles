@@ -1,0 +1,85 @@
+{
+  "clog": {
+    "prefix": "clog",
+    "body": [
+      "console.log($1)"
+    ]
+  },
+  "main": {
+    "prefix": "main",
+    "body": [
+      "async function main() {",
+      "\t$0",
+      "}",
+      "",
+      "void main()"
+    ]
+  },
+  "jsdoc": {
+    "prefix": "jsdoc",
+    "body": [
+      "/**",
+      " * ${1:Description}",
+      " * @param ${2:name} ${3:parameter description}",
+      " * @returns ${4:return description}",
+      " */"
+    ]
+  },
+  "save": {
+    "prefix": "save",
+    "body": [
+      "const fs = await import('fs')",
+      "fs.writeFileSync('data.json', JSON.stringify($0, null, 4))"
+    ]
+  },
+  "inspect": {
+    "prefix": "inspect",
+    "body": [
+      "const { inspect } = await import('util')",
+      "console.log(inspect($0, { depth: null, colors: true }))"
+    ]
+  },
+  "nest app": {
+    "prefix": "nest app",
+    "body": [
+      "import { Module } from '@nestjs/common'",
+      "import { NestFactory } from '@nestjs/core'",
+      "",
+      "@Module({",
+      "\timports: [],",
+      "\tproviders: [],",
+      "})",
+      "class AppModule {}",
+      "",
+      "async function main() {",
+      "\tconst app = await NestFactory.createApplicationContext(AppModule)",
+      "}",
+      "",
+      "void main()"
+    ]
+  },
+  "nest module": {
+    "prefix": "nest module",
+    "body": [
+      "import { Module } from '@nestjs/common'",
+      "",
+      "@Module({",
+      "\timports: [],",
+      "\tproviders: [],",
+      "\texports:[]",
+      "})",
+      "export class ${1}Module {}"
+    ]
+  },
+  "nest injectable": {
+    "prefix": "nest injectable",
+    "body": [
+      "import { Injectable } from '@nestjs/common';",
+      "",
+      "@Injectable()",
+      "export class ${1:ClassName} {",
+      "  $0",
+      "}"
+    ]
+  }
+}
