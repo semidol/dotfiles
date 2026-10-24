@@ -145,11 +145,6 @@ require('lazy').setup({
     'MeanderingProgrammer/render-markdown.nvim',
     ft = { 'markdown' },
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
-    -- nvim 0.12 bug: stale TSNode userdata crashes set-lang-from-info-string!.
-    -- patched in: nvim-treesitter/lua/nvim-treesitter/query_predicates.lua:135
-    --   guard get_node_text in pcall; do NOT skip on `not node.range`
-    --   (that drops injection.language and turns LSP hover code green).
-    -- reapply after `nvim-treesitter` updates.
     ---@module 'render-markdown'
     ---@type render.md.UserConfig
     opts = {
