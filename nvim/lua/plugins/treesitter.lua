@@ -1,64 +1,52 @@
-return { -- Highlight, edit, and navigate code
+-- Languages often embedded in other files, so FileType auto-install won't catch them
+local ENSURE_INSTALLED = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+
+local function try_attach(buf, lang)
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
+
+  if not vim.treesitter.language.add(lang) then
+    return
+  end
+
+  vim.treesitter.start(buf, lang)
+
+  if vim.treesitter.query.get(lang, 'indents') then
+    vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+  end
+end
+
+return {
   'nvim-treesitter/nvim-treesitter',
-  branch = 'master',
+  branch = 'main',
+  lazy = false,
   build = ':TSUpdate',
-  main = 'nvim-treesitter.configs', -- Sets main module to use for opts
-  -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-  opts = {
-    ensure_installed = { 'bash', 'c', 'diff', 'dockerfile', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'mermaid', 'query', 'vim', 'vimdoc' },
-    -- Autoinstall languages that are not installed
-    auto_install = true,
-    highlight = {
-      enable = true,
-      disable = { 'mermaid', 'dockerfile' },
-      -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-      --  If you are experiencing weird indenting issues, add the language to
-      --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-      additional_vim_regex_highlighting = { 'ruby' },
-    },
-    indent = { enable = true, disable = { 'ruby' } },
-  },
-  config = function(_, opts)
-    require('nvim-treesitter.configs').setup(opts)
+  config = function()
+    local ts = require 'nvim-treesitter'
 
-    -- Neovim 0.12 fix: nvim-treesitter's `#set-lang-from-info-string!` directive
-    -- is broken and never spawns the fenced-code child parser, so code blocks
-    -- (and LSP hover signatures) fall back to @markup.raw.block (green).
-    -- Override the markdown injections query to read the language node directly.
-    local markdown_injections = [[
-      (fenced_code_block
-        (info_string
-          (language) @injection.language)
-        (code_fence_content) @injection.content)
+    ts.install(ENSURE_INSTALLED)
 
-      ((html_block) @injection.content
-        (#set! injection.language "html")
-        (#set! injection.combined)
-        (#set! injection.include-children))
+    local available = ts.get_available()
 
-      ((minus_metadata) @injection.content
-        (#set! injection.language "yaml")
-        (#offset! @injection.content 1 0 -1 0)
-        (#set! injection.include-children))
+    vim.api.nvim_create_autocmd('FileType', {
+      group = vim.api.nvim_create_augroup('treesitter-attach', { clear = true }),
+      callback = function(args)
+        local lang = vim.treesitter.language.get_lang(args.match)
+        if not lang then
+          return
+        end
 
-      ((plus_metadata) @injection.content
-        (#set! injection.language "toml")
-        (#offset! @injection.content 1 0 -1 0)
-        (#set! injection.include-children))
+        local installed = vim.list_contains(ts.get_installed 'parsers', lang)
+        if not installed and vim.list_contains(available, lang) then
+          ts.install(lang):await(function()
+            try_attach(args.buf, lang)
+          end)
+          return
+        end
 
-      ([
-        (inline)
-        (pipe_table_cell)
-      ] @injection.content
-        (#set! injection.language "markdown_inline"))
-    ]]
-
-    vim.treesitter.query.set('markdown', 'injections', markdown_injections)
+        try_attach(args.buf, lang)
+      end,
+    })
   end,
-  -- There are additional nvim-treesitter modules that you can use to interact
-  -- with nvim-treesitter. You should go explore a few and see what interests you:
-  --
-  --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-  --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-  --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 }
