@@ -16,6 +16,10 @@ return {
         light_grey = '#a7aab0',
         bg0 = '#1E1E1E', -- main editor background
       },
+
+      highlights = {
+        IblScope = { fg = '#7d7d8c' },
+      },
     }
 
     require('onedark').load()
