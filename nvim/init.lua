@@ -28,10 +28,6 @@ vim.keymap.set('n', '<leader>tt', function()
   vim.diagnostic.config { virtual_text = not config.virtual_text }
 end, { desc = '[T]oggle virtual [T]ext' })
 
-vim.keymap.set('n', '<leader>tm', function()
-  require('render-markdown').toggle()
-end, { desc = '[T]oggle [M]arkdown preview' })
-
 vim.keymap.set('n', '<C-s>', ':w<CR>', { desc = 'Save file' })
 
 vim.keymap.set('c', '<M-Right>', '<S-Right>')

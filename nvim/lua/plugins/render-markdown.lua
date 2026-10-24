@@ -5,6 +5,15 @@ return {
   'MeanderingProgrammer/render-markdown.nvim',
   ft = { 'markdown' },
   dependencies = { 'nvim-treesitter/nvim-treesitter' },
+  keys = {
+    {
+      '<leader>tm',
+      function()
+        require('render-markdown').toggle()
+      end,
+      desc = '[T]oggle [M]arkdown preview',
+    },
+  },
   ---@module 'render-markdown'
   ---@type render.md.UserConfig
   opts = {
