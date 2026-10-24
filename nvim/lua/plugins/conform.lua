@@ -31,6 +31,8 @@ return {
       graphql = { 'prettier' },
       json = { 'prettier' },
       solidity = { 'forge' },
+      -- rustfmt comes from the rustup toolchain, not mason
+      rust = { 'rustfmt' },
     },
     formatters = {
       prettier = {
