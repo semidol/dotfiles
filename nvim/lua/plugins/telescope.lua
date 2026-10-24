@@ -56,8 +56,8 @@ return {
     }
 
     -- Enable Telescope extensions if they are installed
-    pcall(telescope.load_extension, 'fzf')
-    pcall(telescope.load_extension, 'ui-select')
+    telescope.load_extension 'fzf'
+    telescope.load_extension 'ui-select'
     telescope.load_extension 'live_grep_args'
 
     -- See `:help telescope.builtin`
