@@ -6,3 +6,6 @@ require 'config.options'
 require 'config.keymaps'
 require 'config.autocmds'
 require 'config.lazy'
+
+-- Translate mappings created before langmapper was loaded (config.keymaps, built-ins)
+require('langmapper').automapping { global = true, buffer = false }

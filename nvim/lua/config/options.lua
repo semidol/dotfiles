@@ -30,11 +30,9 @@ vim.o.clipboard = 'unnamedplus'
 
 -- Normal-mode commands work in the Russian layout: each Cyrillic letter
 -- acts as the Latin key at the same position. Insert and command-line
--- modes still type whatever the OS layout produces.
-local CYRILLIC_LOWER = 'ёйцукенгшщзхъфывапролджэячсмитьбю'
-local LATIN_LOWER = "`qwertyuiop[]asdfghjkl;'zxcvbnm,."
-local CYRILLIC_UPPER = 'ЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
-local LATIN_UPPER = '~QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>'
+-- modes still type whatever the OS layout produces. Mappings are
+-- translated separately by langmapper.nvim.
+local russian_layout = require 'config.russian_layout'
 
 local function escape_langmap(chars)
   return (chars:gsub('[;,"\\]', '\\%0'))
@@ -44,4 +42,6 @@ local function langmap_pair(from, to)
   return escape_langmap(from) .. ';' .. escape_langmap(to)
 end
 
-vim.o.langmap = langmap_pair(CYRILLIC_UPPER, LATIN_UPPER) .. ',' .. langmap_pair(CYRILLIC_LOWER, LATIN_LOWER)
+vim.o.langmap = langmap_pair(russian_layout.cyrillic_upper, russian_layout.latin_upper)
+  .. ','
+  .. langmap_pair(russian_layout.cyrillic_lower, russian_layout.latin_lower)
