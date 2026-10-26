@@ -1,8 +1,5 @@
--- Clear highlights on search when pressing <Esc> in normal mode
---  See `:help hlsearch`
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highlight' })
 
--- Toggle quickfix list
 vim.keymap.set('n', '<leader>tq', function()
   if vim.fn.getqflist({ winid = 0 }).winid ~= 0 then
     vim.cmd 'cclose'
@@ -26,10 +23,8 @@ end, { desc = '[T]oggle virtual [T]ext' })
 
 vim.keymap.set('n', '<C-s>', ':w<CR>', { desc = 'Save file' })
 
-vim.keymap.set('c', '<M-Right>', '<S-Right>')
-vim.keymap.set('c', '<M-Left>', '<S-Left>')
-vim.keymap.set('i', '<M-Right>', '<S-Right>')
-vim.keymap.set('i', '<M-Left>', '<S-Left>')
+vim.keymap.set({ 'c', 'i' }, '<M-Right>', '<S-Right>', { desc = 'Move word right' })
+vim.keymap.set({ 'c', 'i' }, '<M-Left>', '<S-Left>', { desc = 'Move word left' })
 
 local function copy_file_path(with_line)
   local file_path = vim.fn.expand '%:p:~'
@@ -49,15 +44,14 @@ end
 
 vim.keymap.set('n', '<leader>C', function()
   copy_file_path(true)
-end, { desc = '[c]opy file path with line number' })
+end, { desc = '[C]opy file path with line number' })
 
 vim.keymap.set('n', '<leader>c', function()
   copy_file_path(false)
-end, { desc = '[c]opy file path' })
+end, { desc = '[C]opy file path' })
 
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
---  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
