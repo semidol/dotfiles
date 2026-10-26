@@ -17,10 +17,17 @@ vim.keymap.set('n', '<leader>tq', function()
   end
 end, { desc = '[T]oggle [Q]uickfix list' })
 
--- Toggle virtual text
+local saved_virtual_text
+
 vim.keymap.set('n', '<leader>tt', function()
-  local config = vim.diagnostic.config()
-  vim.diagnostic.config { virtual_text = not config.virtual_text }
+  local current = vim.diagnostic.config().virtual_text
+
+  if current then
+    saved_virtual_text = current
+    vim.diagnostic.config { virtual_text = false }
+  else
+    vim.diagnostic.config { virtual_text = saved_virtual_text or true }
+  end
 end, { desc = '[T]oggle virtual [T]ext' })
 
 vim.keymap.set('n', '<C-s>', ':w<CR>', { desc = 'Save file' })
