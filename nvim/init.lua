@@ -37,29 +37,28 @@ vim.keymap.set('c', '<M-Left>', '<S-Left>')
 vim.keymap.set('i', '<M-Right>', '<S-Right>')
 vim.keymap.set('i', '<M-Left>', '<S-Left>')
 
-local function current_file_path()
-  local file_path = vim.fn.expand '%:p'
-  local home = vim.loop.os_homedir()
+local function copy_file_path(with_line)
+  local file_path = vim.fn.expand '%:p:~'
 
-  if home and file_path:sub(1, #home) == home then
-    return '~' .. file_path:sub(#home + 1)
+  if file_path == '' then
+    vim.notify('Buffer has no file', vim.log.levels.WARN)
+    return
   end
 
-  return file_path
-end
+  if with_line then
+    file_path = file_path .. ':' .. vim.fn.line '.'
+  end
 
--- Copy file path and line number to clipboard
-vim.keymap.set('n', '<leader>C', function()
-  local path_with_line = current_file_path() .. ':' .. vim.fn.line '.'
-  vim.fn.setreg('+', path_with_line)
-  print('Copied: ' .. path_with_line)
-end, { desc = '[c]opy file path with line number' })
-
--- Copy file path to clipboard
-vim.keymap.set('n', '<leader>c', function()
-  local file_path = current_file_path()
   vim.fn.setreg('+', file_path)
   print('Copied: ' .. file_path)
+end
+
+vim.keymap.set('n', '<leader>C', function()
+  copy_file_path(true)
+end, { desc = '[c]opy file path with line number' })
+
+vim.keymap.set('n', '<leader>c', function()
+  copy_file_path(false)
 end, { desc = '[c]opy file path' })
 
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
