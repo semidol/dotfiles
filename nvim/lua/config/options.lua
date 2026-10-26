@@ -28,11 +28,20 @@ vim.o.scrolloff = 10
 vim.o.confirm = true
 vim.o.clipboard = 'unnamedplus'
 
--- Cyrillic input lives inside Vim, so the OS layout can stay English
--- and normal-mode motions keep working. Toggle with <C-^> in insert mode.
-local IM_DISABLED = 0
-local IM_FOLLOWS_INSERT = -1
+-- Normal-mode commands work in the Russian layout: each Cyrillic letter
+-- acts as the Latin key at the same position. Insert and command-line
+-- modes still type whatever the OS layout produces.
+local CYRILLIC_LOWER = 'ёйцукенгшщзхъфывапролджэячсмитьбю'
+local LATIN_LOWER = "`qwertyuiop[]asdfghjkl;'zxcvbnm,."
+local CYRILLIC_UPPER = 'ЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
+local LATIN_UPPER = '~QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>'
 
-vim.o.keymap = 'russian-jcukenwin'
-vim.o.iminsert = IM_DISABLED
-vim.o.imsearch = IM_FOLLOWS_INSERT
+local function escape_langmap(chars)
+  return (chars:gsub('[;,"\\]', '\\%0'))
+end
+
+local function langmap_pair(from, to)
+  return escape_langmap(from) .. ';' .. escape_langmap(to)
+end
+
+vim.o.langmap = langmap_pair(CYRILLIC_UPPER, LATIN_UPPER) .. ',' .. langmap_pair(CYRILLIC_LOWER, LATIN_LOWER)
