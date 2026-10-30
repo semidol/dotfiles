@@ -1,0 +1,13 @@
+{
+  "lastChangelogVersion": "1.4.0",
+  "defaultProvider": "kimi-coding",
+  "defaultModel": "k3.1-pro",
+  "theme": "dark-gray",
+  "hideThinkingBlock": true,
+  "packages": [
+    "npm:pi-web-access@0.46.0",
+    "npm:pi-compact-tools@0.16.7"
+  ],
+  "editorPaddingX": 1,
+  "defaultThinkingLevel": "low"
+}

@@ -1,7 +1,7 @@
 # dotfiles
 
-Configs for a macOS host and an isolated Ubuntu dev VM (Lima) where Claude
-runs without permission prompts.
+Configs for a macOS host and an isolated Ubuntu dev VM (Lima) for running
+coding agents.
 
 ## Layout
 
@@ -13,13 +13,15 @@ runs without permission prompts.
 | `zsh/` | Shell, p10k prompt | sourced from `~/.zshrc`, `~/.p10k.zsh` | VM |
 | `tmux/` | tmux config and session helpers | `~/.config/tmux` | VM |
 | `nvim/` | Neovim config | `~/.config/nvim` | VM |
-| `claude/` | Claude Code config and skills | `~/.claude/*` | VM |
+| `pi/` | Pi settings, themes and skills | `~/.pi/agent/*` | VM |
 | `bin/` | Utilities, each described in its header | `~/bin` | both |
 
 ## Setup
 
 VM: `lima/setup-vm.sh` on the host creates the VM and runs
 `lima/bootstrap-dotfiles.sh` inside it. See [lima/README.md](lima/README.md).
+Pi's settings are copied because Pi updates them at runtime; its themes and
+personal skills are symlinked. See [pi/README.md](pi/README.md).
 
 Host: no installer, symlink the host configs by hand:
 

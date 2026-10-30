@@ -31,42 +31,6 @@ f. Bash `mktemp -d ./.audit-XXXXXX` → store as `{bundle_dir}`
 
 If the remote VERSION fetch succeeds and differs from local, print `⚠️ You are not using the latest version. Please upgrade for best security coverage. See https://github.com/pashov/skills`. If it fails, skip silently.
 
-**Turn 1b — Model selection (Claude Code only).** This turn applies ONLY when both `AskUserQuestion` and the `Agent` tool (with a `model` parameter) are available in your runtime — i.e., Claude Code. On Codex, Gemini, Cursor's native agent, or any runtime without these, SKIP this turn entirely, leave `{agent_model}` unset, and proceed to Turn 2. Do NOT emit the question as prose. Do NOT substitute any other mechanism.
-
-On Claude Code:
-
-1. Read your system prompt to detect your own model **family** (Opus, Sonnet, or Haiku). Ignore the version digits — the Agent tool's `model` parameter takes the family name (`"opus"` / `"sonnet"` / `"haiku"`), and the runtime resolves to the latest version in that family.
-2. Call `AskUserQuestion` with:
-   - Question: `"Which Claude model should the 12 audit agents use?"`
-   - Three single-select options. Mark the orchestrator's own family as `(Recommended)` and place it first.
-   - On each option, set the `description` field to `latest`.
-   - On each option, set the `preview` field verbatim (preserve all whitespace exactly — the box widths must stay equal across all three):
-
-   Opus preview:
-
-   ```
-   ┌──────────────────────────────────────────────────────────┐
-   │  opus  ·  highest reasoning  ·  most expensive           │
-   └──────────────────────────────────────────────────────────┘
-   ```
-
-   Sonnet preview:
-
-   ```
-   ┌──────────────────────────────────────────────────────────┐
-   │  sonnet  ·  balanced reasoning  ·  mid cost              │
-   └──────────────────────────────────────────────────────────┘
-   ```
-
-   Haiku preview:
-
-   ```
-   ┌──────────────────────────────────────────────────────────┐
-   │  haiku  ·  lowest reasoning  ·  cheapest                 │
-   └──────────────────────────────────────────────────────────┘
-   ```
-3. Store the runner's choice as `{agent_model}`. If no answer, default to the orchestrator's own model.
-
 **Turn 2 — Prepare.** In one message, make parallel tool calls: (a) Read `{resolved_path}/report-formatting.md`, (b) Read `{resolved_path}/judging.md`.
 
 Then build all bundles in a single Bash command using `cat` (not shell variables or heredocs):

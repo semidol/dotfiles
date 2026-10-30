@@ -1,8 +1,8 @@
 # Dev VM
 
-An isolated Ubuntu VM for running Claude without permission prompts. The guest
-has no access to the host filesystem and cannot reach the local network, so a
-misbehaving agent is confined to the VM.
+An isolated Ubuntu VM for running coding agents. The guest has no access to
+the host filesystem and cannot reach the local network, so a misbehaving agent
+is confined to the VM.
 
 It also holds no credentials. The host is the only side that talks to GitHub,
 so an agent in the VM cannot push anywhere, and code moves in and out over a
@@ -12,14 +12,11 @@ git remote pointed at the VM itself.
 
 ```sh
 vm           # zsh inside the VM, or `vm <instance>` for another one
-tmux-pick    # pick a project, opens a tmux session with nvim + claude-tuned
+tmux-pick    # pick a project, opens a tmux session with nvim + pi
 ```
 
 Shut down with `limactl stop dev`. The disk persists; running processes and
 tmux sessions do not, so push your work first.
-
-`claude-tuned` runs with `--dangerously-skip-permissions`. That is only safe
-because it runs in here.
 
 ## First-time setup
 
@@ -29,7 +26,7 @@ because it runs in here.
 
 Creates the instance, starts it, pushes the dotfiles in and bootstraps them.
 Safe to re-run: an existing instance is reused. Provisioning installs docker,
-node (fnm), foundry, rust (rustup), uv, neovim, tmux and the Claude CLI.
+node (fnm), foundry, rust (rustup), uv, neovim and tmux.
 
 ## Working on a project
 

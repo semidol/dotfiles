@@ -27,7 +27,7 @@ Reproduce the user's symptom first: run the command they named and capture the a
 
 Two facts worth checking early, since both silently rewrite the chain:
 
-- Is the file a symlink into `~/dotfiles`, a stale copy, or absent? `bootstrap-dotfiles.sh` symlinks most Claude config but **copies** `settings.json`, and `~/.zshrc` is a real file that only sources the repo's.
+- Is the file a symlink into `~/dotfiles`, a stale copy, or absent? `bootstrap-dotfiles.sh` symlinks Pi's themes and skills but **copies** `settings.json`, and `~/.zshrc` is a real file that only sources the repo's.
 - Was the guest created before the code you are reading was written? Compare the instance's age against the file's history.
 
 Done when you can name the exact hop that fails and say why it fails there, not merely that the command errors.

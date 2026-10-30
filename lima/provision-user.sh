@@ -20,8 +20,6 @@ install_node() {
   fnm default "$NODE_VERSION"
 
   corepack enable
-
-  npm install -g @anthropic-ai/claude-code
 }
 
 install_foundry() {

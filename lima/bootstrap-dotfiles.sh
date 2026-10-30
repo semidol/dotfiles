@@ -11,25 +11,7 @@ readonly CONFIG="${HOME}/.config"
 readonly OH_MY_ZSH="${HOME}/.oh-my-zsh"
 readonly ZSH_CUSTOM="${OH_MY_ZSH}/custom"
 readonly TPM="${HOME}/.tmux/plugins/tpm"
-readonly CLAUDE_HOME="${HOME}/.claude"
-
-# Claude writes session state into ~/.claude, so only the configuration
-# entries are symlinked and the directory itself stays writable.
-readonly CLAUDE_CONFIG_ENTRIES=(
-  CLAUDE.md
-  keybindings.json
-  statusline.sh
-  statusline-usage-refresh.sh
-  rules
-  agents
-  skills
-)
-
-# Claude rewrites settings.json as it runs, so it gets a copy of its own
-# rather than a symlink that would carry those writes into the repo.
-readonly CLAUDE_COPIED_ENTRIES=(
-  settings.json
-)
+readonly PI_HOME="${HOME}/.pi/agent"
 
 require_dotfiles() {
   if [[ ! -d "$DOTFILES" ]]; then
@@ -59,19 +41,21 @@ link_zshrc() {
   fi
 }
 
-link_claude_config() {
-  mkdir -p "$CLAUDE_HOME"
+link_pi_config() {
+  mkdir -p "${PI_HOME}"
 
-  local entry
-  for entry in "${CLAUDE_CONFIG_ENTRIES[@]}"; do
-    rm -rf "${CLAUDE_HOME}/${entry}"
-    ln -sfn "${DOTFILES}/claude/${entry}" "${CLAUDE_HOME}/${entry}"
-  done
+  # Pi rewrites settings.json as it runs, so keep its writable copy outside
+  # the repo. Themes are static resources and can be symlinked directly.
+  rm -rf "${PI_HOME}/settings.json"
+  cp "${DOTFILES}/pi/settings.json" "${PI_HOME}/settings.json"
+  rm -rf "${PI_HOME}/themes"
+  ln -sfn "${DOTFILES}/pi/themes" "${PI_HOME}/themes"
+  rm -rf "${PI_HOME}/skills"
+  ln -sfn "${DOTFILES}/pi/skills" "${PI_HOME}/skills"
 
-  for entry in "${CLAUDE_COPIED_ENTRIES[@]}"; do
-    rm -rf "${CLAUDE_HOME}/${entry}"
-    cp "${DOTFILES}/claude/${entry}" "${CLAUDE_HOME}/${entry}"
-  done
+  if command -v pi >/dev/null 2>&1; then
+    pi update --extensions
+  fi
 }
 
 install_oh_my_zsh() {
@@ -111,7 +95,7 @@ install_nvim_plugins() {
 require_dotfiles
 link_configs
 link_zshrc
-link_claude_config
+link_pi_config
 install_oh_my_zsh
 install_tmux_plugins
 install_nvim_plugins

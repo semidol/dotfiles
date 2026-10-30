@@ -65,7 +65,7 @@ if ! tmux has-session -t "$SESSION" 2>/dev/null; then
     tmux new-session -d -s "$SESSION" -c "$TARGET_PATH"
     tmux send-keys -t "$SESSION" "nvim" C-m
     tmux new-window -t "$SESSION" -c "$TARGET_PATH"
-    tmux send-keys -t "$SESSION" "claude-tuned" C-m
+    tmux send-keys -t "$SESSION" "pi" C-m
     tmux new-window -t "$SESSION" -c "$TARGET_PATH"
 fi
 
