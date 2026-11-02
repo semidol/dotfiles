@@ -9,5 +9,12 @@
     "npm:pi-compact-tools@0.16.7"
   ],
   "editorPaddingX": 1,
-  "defaultThinkingLevel": "low"
+  "enabledModels": [
+    "kimi-coding/k3.1-pro:low",
+    "opencode-go/gemini-4-argon:high",
+    "opencode-go/kimi-k3.1-pro:max",
+    "opencode-go/mimo-v2.6-pro",
+    "opencode-go/deepseek-v4.1-flash:max",
+    "opencode-go/muse-spark-1.3-contributor:xhigh"
+  ]
 }
