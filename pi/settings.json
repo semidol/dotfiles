@@ -7,7 +7,12 @@
   "packages": [
     "npm:pi-web-access@0.46.0",
     "npm:pi-compact-tools@0.16.7",
-    "npm:pi-chrome@0.15.57",
+    {
+      "source": "npm:pi-chrome@0.15.57",
+      "extensions": [
+        "-extensions/chrome-profile-bridge/index.ts"
+      ]
+    },
     "npm:pi-subagents@0.84.0"
   ],
   "editorPaddingX": 1,
