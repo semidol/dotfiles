@@ -14,7 +14,7 @@ local function showChatGPT()
 	if not chatGPT then
 		chatGPT = hs.webview.new(frame, { privateBrowsing = false })
 		chatGPT
-			:windowStyle({ "titled", "fullSizeContentView" })
+			:windowStyle({ "titled", "fullSizeContentView", "utility" })
 			:titleVisibility("hidden")
 			:shadow(true)
 			:allowTextEntry(true)
