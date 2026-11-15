@@ -2,7 +2,7 @@ local chatGPT
 local applicationBeforeChatGPT
 
 local function chatGPTFrame()
-	local screen = hs.screen.mainScreen():fullFrame()
+	local screen = hs.screen.mainScreen():frame()
 
 	return hs.geometry.rect(screen.x, screen.y, math.floor(screen.w / 3), screen.h)
 end
