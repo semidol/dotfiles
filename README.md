@@ -15,7 +15,7 @@ coding agents.
 | `tmux/` | tmux config and session helpers | `~/.config/tmux` | VM |
 | `agenmux/` | agenmux sidebar settings | `~/.config/agenmux/config.toml` | VM |
 | `nvim/` | Neovim config | `~/.config/nvim` | VM |
-| `pi/` | Pi settings, themes and skills | `~/.pi/agent/*` | VM |
+| `pi/` | Pi settings, compact-tools config, themes and skills | `~/.pi/agent/*` | VM |
 | `bin/` | Utilities, each described in its header | `~/bin` | both |
 
 ## Setup

@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nedleeds/pi-compact-tools/main/schemas/compact-tools.schema.json",
+  "style": "compact",
+  "mode": "normal",
+  "thinking": false,
+  "working": false
+}

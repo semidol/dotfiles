@@ -48,10 +48,13 @@ link_zshrc() {
 link_pi_config() {
   mkdir -p "${PI_HOME}"
 
-  # Pi rewrites settings.json as it runs, so keep its writable copy outside
-  # the repo. Themes are static resources and can be symlinked directly.
+  # Pi rewrites settings.json as it runs, and /compact-tools rewrites its
+  # config, so keep writable copies outside the repo. Themes are static
+  # resources and can be symlinked directly.
   rm -rf "${PI_HOME}/settings.json"
   cp "${DOTFILES}/pi/settings.json" "${PI_HOME}/settings.json"
+  rm -rf "${PI_HOME}/compact-tools.json"
+  cp "${DOTFILES}/pi/compact-tools.json" "${PI_HOME}/compact-tools.json"
   rm -rf "${PI_HOME}/themes"
   ln -sfn "${DOTFILES}/pi/themes" "${PI_HOME}/themes"
   rm -rf "${PI_HOME}/skills"
