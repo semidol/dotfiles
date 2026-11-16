@@ -37,6 +37,9 @@ function toggleChatGPT() {
 	} else {
 		win.show();
 		visible = true;
+		// show() only orders the window in front; the accessory app has to be
+		// activated for the window to take keyboard focus.
+		hs.application.fromPID(hs.appinfo.pid)?.activate();
 	}
 }
 
