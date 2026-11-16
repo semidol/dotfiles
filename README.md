@@ -9,7 +9,7 @@ coding agents.
 | --- | --- | --- | --- |
 | `aerospace/` | Tiling window manager | `~/.aerospace.toml` | host |
 | `wezterm/` | Terminal | `~/.wezterm.lua` | host |
-| `hammerspoon/` | floating web apps | `~/.hammerspoon` | host |
+| `hammerspoon/` | floating web apps | `~/.config/Hammerspoon2` (v2), `~/.hammerspoon` (v1) | host |
 | `lima/` | Dev VM definition and provisioning | used in place | host |
 | `zsh/` | Shell, p10k prompt | sourced from `~/.zshrc`, `~/.p10k.zsh` | VM |
 | `tmux/` | tmux config and session helpers | `~/.config/tmux` | VM |
@@ -29,6 +29,17 @@ Host: no installer, symlink the host configs by hand:
 ```sh
 ln -sf ~/dotfiles/aerospace/.aerospace.toml ~/.aerospace.toml
 ln -sf ~/dotfiles/wezterm/.wezterm.lua ~/.wezterm.lua
-ln -sfn ~/dotfiles/hammerspoon ~/.hammerspoon
+ln -sfn ~/dotfiles/hammerspoon ~/.config/Hammerspoon2
 ln -sfn ~/dotfiles/bin ~/bin
 ```
+
+Hammerspoon: `init.js` is the Hammerspoon 2 config, `init.lua` the old
+Hammerspoon 1 one; run only one of them, they bind the same hotkey. Hammerspoon
+2 asks for its config directory on first launch — point it at
+`~/dotfiles/hammerspoon` (or symlink it there as above; `hs.appinfo.configDir`
+shows the path it actually uses). Its embedded web view needs macOS 26+.
+
+Both versions bind Cmd+Alt+Ctrl+I to a floating ChatGPT pane pinned to the left
+third of the screen. The v1 pane looks like a utility window; the v2 one is a
+normal titled window whose toolbar carries back/forward/reload and the URL bar.
+The URL bar wants a full address, with the scheme.
