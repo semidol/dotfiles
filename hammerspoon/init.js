@@ -3,6 +3,14 @@
 
 const START_URL = "https://chatgpt.com/";
 
+// AeroSpace remembers the workspace of a hidden window and restores it, pulling
+// the visible workspace along. Every layout command clears that memory, and
+// moving the focused window to the focused workspace does nothing else, so this
+// makes the pane open in the current workspace.
+const FORGET_HIDDEN_WINDOWS =
+	'export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; ' +
+	'aerospace move-node-to-workspace "$(aerospace list-workspaces --focused)"';
+
 let win = null;
 let visible = false;
 let windowBeforeOpen = null;
@@ -41,11 +49,14 @@ function toggleChatGPT() {
 	}
 
 	windowBeforeOpen = hs.window.focusedWindow();
-	win.show();
-	visible = true;
-	// show() only orders the window in front; the accessory app has to be
-	// activated for the window to take keyboard focus.
-	hs.application.fromPID(hs.appinfo.pid)?.activate();
+
+	hs.task.shell(FORGET_HIDDEN_WINDOWS).then(() => {
+		win.show();
+		visible = true;
+		// show() only orders the window in front; the accessory app has to be
+		// activated for the window to take keyboard focus.
+		hs.application.fromPID(hs.appinfo.pid)?.activate();
+	});
 }
 
 hs.hotkey.bind(["cmd", "alt", "ctrl"], "i", toggleChatGPT, null, null);
