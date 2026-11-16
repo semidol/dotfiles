@@ -5,6 +5,7 @@ const START_URL = "https://chatgpt.com/";
 
 let win = null;
 let visible = false;
+let windowBeforeOpen = null;
 
 function toggleChatGPT() {
 	if (!win) {
@@ -26,21 +27,25 @@ function toggleChatGPT() {
 			.level("floating")
 			.webview(webview)
 			.onHide(() => {
-				// Also fires when the window's close button is clicked.
 				visible = false;
+
+				const saved = windowBeforeOpen;
+				windowBeforeOpen = null;
+				if (saved) saved.focus();
 			});
 	}
 
 	if (visible) {
 		win.hide();
-		visible = false;
-	} else {
-		win.show();
-		visible = true;
-		// show() only orders the window in front; the accessory app has to be
-		// activated for the window to take keyboard focus.
-		hs.application.fromPID(hs.appinfo.pid)?.activate();
+		return;
 	}
+
+	windowBeforeOpen = hs.window.focusedWindow();
+	win.show();
+	visible = true;
+	// show() only orders the window in front; the accessory app has to be
+	// activated for the window to take keyboard focus.
+	hs.application.fromPID(hs.appinfo.pid)?.activate();
 }
 
 hs.hotkey.bind(["cmd", "alt", "ctrl"], "i", toggleChatGPT, null, null);
