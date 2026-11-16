@@ -1,2 +1,4 @@
 tmux/plugins/
 .tmp/
+hammerspoon/bundle.js
+hammerspoon/package.json
