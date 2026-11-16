@@ -22,6 +22,12 @@ install_node() {
   corepack enable
 }
 
+# The agent CLI comes from npm, whose global prefix fnm already points at the
+# default Node version.
+install_pi() {
+  npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+}
+
 install_foundry() {
   curl -fsSL https://foundry.paradigm.xyz | bash
 
@@ -41,6 +47,7 @@ if [[ -f "$STAMP" ]]; then
 fi
 
 install_node
+install_pi
 install_foundry
 install_rust
 install_uv

@@ -26,7 +26,7 @@ tmux sessions do not, so push your work first.
 
 Creates the instance, starts it, pushes the dotfiles in and bootstraps them.
 Safe to re-run: an existing instance is reused. Provisioning installs docker,
-node (fnm), foundry, rust (rustup), uv, neovim and tmux.
+node (fnm), Pi, foundry, rust (rustup), uv, neovim and tmux.
 
 ## Working on a project
 
@@ -66,7 +66,7 @@ the VM simply has no way to reach it.
 | `setup-vm.sh` | Creates the VM and installs dotfiles into it |
 | `provision-firewall.sh` | Rejects RFC1918 destinations; runs on every boot |
 | `provision-system.sh` | Root-level toolchain, runs once at creation |
-| `provision-user.sh` | Node, foundry, rust and uv, runs once at creation |
+| `provision-user.sh` | Node, Pi, foundry, rust and uv, runs once at creation |
 | `bootstrap-dotfiles.sh` | Links configs, installs plugins; run in the guest |
 
 `bin/vm-remote` lives outside this directory because it is used from any
