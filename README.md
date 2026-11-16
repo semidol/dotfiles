@@ -29,13 +29,12 @@ Host: no installer, symlink the host configs by hand:
 ```sh
 ln -sf ~/dotfiles/aerospace/.aerospace.toml ~/.aerospace.toml
 ln -sf ~/dotfiles/wezterm/.wezterm.lua ~/.wezterm.lua
-ln -sfn ~/dotfiles/hammerspoon ~/.config/hammerspoon2
 ln -sfn ~/dotfiles/bin ~/bin
 ```
 
-Hammerspoon 2 asks for its config directory on first launch — point it at
-`~/dotfiles/hammerspoon` (or symlink it there as above; `hs.appinfo.configDir`
-shows the path it actually uses). Its embedded web view needs macOS 26+.
+Hammerspoon 2 asks for its config directory on first launch — point it straight
+at `~/dotfiles/hammerspoon` (`hs.appinfo.configDir` shows the path it actually
+uses), no symlink needed. Its embedded web view needs macOS 26+.
 
 Cmd+Alt+Ctrl+I toggles a floating ChatGPT pane in the right third of the screen,
 Cmd+Alt+Ctrl+U a Yandex Translate pane in the left third. Each window's toolbar
