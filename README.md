@@ -9,7 +9,7 @@ coding agents.
 | --- | --- | --- | --- |
 | `aerospace/` | Tiling window manager | `~/.aerospace.toml` | host |
 | `wezterm/` | Terminal | `~/.wezterm.lua` | host |
-| `hammerspoon/` | floating web apps | `~/.config/Hammerspoon2` (v2), `~/.hammerspoon` (v1) | host |
+| `hammerspoon/` | floating web apps | `~/.config/hammerspoon2` (v2), `~/.hammerspoon` (v1) | host |
 | `lima/` | Dev VM definition and provisioning | used in place | host |
 | `zsh/` | Shell, p10k prompt | sourced from `~/.zshrc`, `~/.p10k.zsh` | VM |
 | `tmux/` | tmux config and session helpers | `~/.config/tmux` | VM |
@@ -29,7 +29,7 @@ Host: no installer, symlink the host configs by hand:
 ```sh
 ln -sf ~/dotfiles/aerospace/.aerospace.toml ~/.aerospace.toml
 ln -sf ~/dotfiles/wezterm/.wezterm.lua ~/.wezterm.lua
-ln -sfn ~/dotfiles/hammerspoon ~/.config/Hammerspoon2
+ln -sfn ~/dotfiles/hammerspoon ~/.config/hammerspoon2
 ln -sfn ~/dotfiles/bin ~/bin
 ```
 
