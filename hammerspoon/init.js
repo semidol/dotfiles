@@ -15,25 +15,32 @@ let visible = false;
 let windowBeforeOpen = null;
 
 function aerospace(args) {
-	return hs.task
-		.shell(AEROSPACE + args)
-		.then((result) => result.stdout.trim())
-		.catch(() => "");
+	return hs.task.shell(AEROSPACE + args).then(
+		(result) => result.stdout.trim(),
+		(result) => {
+			console.error("aerospace " + args + ": " + result.stderr.trim());
+			return "";
+		}
+	);
 }
 
-// [window-id, workspace, title] of the pane as AeroSpace sees it, or null.
+// { id, workspace } of the pane as AeroSpace sees it, or null. The listing is
+// not filtered by app id because the flag for that changed name across
+// AeroSpace versions; the window list itself is small enough to scan.
 function paneLocation() {
 	return aerospace(
-		`list-windows --all --app-bundle-id ${hs.appinfo.bundleIdentifier}` +
-			` --format '%{window-id}\t%{workspace}\t%{window-title}'`
+		"list-windows --all --format '%{app-name}|%{window-id}|%{workspace}|%{window-title}'"
 	).then((output) => {
-		if (!output) return null;
-
-		const line = output
+		const row = output
 			.split("\n")
-			.map((row) => row.split("\t"))
-			.find((row) => row[2] === PANE_TITLE);
-		return line ?? null;
+			.map((line) => line.split("|"))
+			.find(
+				(columns) =>
+					columns[0].toLowerCase().startsWith("hammerspoon") &&
+					columns[3] === PANE_TITLE
+			);
+
+		return row ? { id: row[1], workspace: row[2] } : null;
 	});
 }
 
@@ -77,9 +84,9 @@ function toggleChatGPT() {
 
 	Promise.all([aerospace("list-workspaces --focused"), paneLocation()]).then(
 		([focusedWorkspace, pane]) => {
-			// A pane left on another workspace is shown in a corner there; treat
-			// it as still open and pull it over instead of closing it.
-			const inFront = pane !== null && pane[1] === focusedWorkspace;
+			// A pane left on another workspace sits in a corner there; treat it as
+			// still open and pull it over instead of closing it.
+			const inFront = pane !== null && pane.workspace === focusedWorkspace;
 			if (inFront || (pane === null && visible)) {
 				win.hide();
 				return;
@@ -89,7 +96,7 @@ function toggleChatGPT() {
 
 			const bring = pane
 				? aerospace(
-						`move-node-to-workspace "${focusedWorkspace}" --window-id ${pane[0]}`
+						`move-node-to-workspace "${focusedWorkspace}" --window-id ${pane.id}`
 					)
 				: // A pane that was hidden is remembered by AeroSpace and would be
 					// restored to its old workspace. This no-op layout command drops
