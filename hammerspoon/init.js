@@ -2,61 +2,103 @@
 // Cmd+Alt+Ctrl+I opens and closes it.
 
 const START_URL = "https://chatgpt.com/";
+const PANE_TITLE = "ChatGPT";
 
-// AeroSpace remembers the workspace of a hidden window and restores it, pulling
-// the visible workspace along. Every layout command clears that memory, and
-// moving the focused window to the focused workspace does nothing else, so this
-// makes the pane open in the current workspace.
-const FORGET_HIDDEN_WINDOWS =
-	'export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; ' +
-	'aerospace move-node-to-workspace "$(aerospace list-workspaces --focused)"';
+// AeroSpace hides windows of inactive workspaces in a screen corner and brings
+// them back when they belong to the visible workspace, so every open/close goes
+// through it: it is what puts the pane in front of the current workspace.
+const AEROSPACE =
+	'export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; aerospace ';
 
 let win = null;
 let visible = false;
 let windowBeforeOpen = null;
 
-function toggleChatGPT() {
-	if (!win) {
-		const frame = hs.screen.main().frame;
+function aerospace(args) {
+	return hs.task
+		.shell(AEROSPACE + args)
+		.then((result) => result.stdout.trim())
+		.catch(() => "");
+}
 
-		const webview = hs.ui
-			.webview()
-			.toolbar(["back", "forward", "reload", "url"])
-			.loadURL(START_URL);
+// [window-id, workspace, title] of the pane as AeroSpace sees it, or null.
+function paneLocation() {
+	return aerospace(
+		`list-windows --all --app-bundle-id ${hs.appinfo.bundleIdentifier}` +
+			` --format '%{window-id}\t%{workspace}\t%{window-title}'`
+	).then((output) => {
+		if (!output) return null;
 
-		win = hs.ui
-			.window({
-				x: frame.x,
-				y: frame.y,
-				w: Math.floor(frame.w / 3),
-				h: frame.h,
-			})
-			.windowTitle("ChatGPT")
-			.level("floating")
-			.webview(webview)
-			.onHide(() => {
-				visible = false;
-
-				const saved = windowBeforeOpen;
-				windowBeforeOpen = null;
-				if (saved) saved.focus();
-			});
-	}
-
-	if (visible) {
-		win.hide();
-		return;
-	}
-
-	windowBeforeOpen = hs.window.focusedWindow();
-
-	hs.task.shell(FORGET_HIDDEN_WINDOWS).then(() => {
-		win.show();
-		visible = true;
-		// show() only orders the window in front; the accessory app has to be
-		// activated for the window to take keyboard focus.
-		hs.application.fromPID(hs.appinfo.pid)?.activate();
+		const line = output
+			.split("\n")
+			.map((row) => row.split("\t"))
+			.find((row) => row[2] === PANE_TITLE);
+		return line ?? null;
 	});
+}
+
+function createPane() {
+	const frame = hs.screen.main().frame;
+
+	const webview = hs.ui
+		.webview()
+		.toolbar(["back", "forward", "reload", "url"])
+		.loadURL(START_URL);
+
+	return hs.ui
+		.window({
+			x: frame.x,
+			y: frame.y,
+			w: Math.floor(frame.w / 3),
+			h: frame.h,
+		})
+		.windowTitle(PANE_TITLE)
+		.level("floating")
+		.webview(webview)
+		.onHide(() => {
+			visible = false;
+
+			const saved = windowBeforeOpen;
+			windowBeforeOpen = null;
+			if (saved) saved.focus();
+		});
+}
+
+function showPane() {
+	win.show();
+	visible = true;
+	// show() only orders the window in front; the accessory app has to be
+	// activated for the window to take keyboard focus.
+	hs.application.fromPID(hs.appinfo.pid)?.activate();
+}
+
+function toggleChatGPT() {
+	if (!win) win = createPane();
+
+	Promise.all([aerospace("list-workspaces --focused"), paneLocation()]).then(
+		([focusedWorkspace, pane]) => {
+			// A pane left on another workspace is shown in a corner there; treat
+			// it as still open and pull it over instead of closing it.
+			const inFront = pane !== null && pane[1] === focusedWorkspace;
+			if (inFront || (pane === null && visible)) {
+				win.hide();
+				return;
+			}
+
+			windowBeforeOpen = hs.window.focusedWindow();
+
+			const bring = pane
+				? aerospace(
+						`move-node-to-workspace "${focusedWorkspace}" --window-id ${pane[0]}`
+					)
+				: // A pane that was hidden is remembered by AeroSpace and would be
+					// restored to its old workspace. This no-op layout command drops
+					// that memory, so the pane opens where the user is.
+					aerospace(`move-node-to-workspace "${focusedWorkspace}"`);
+
+			bring.then(showPane);
+		}
+	);
 }
 
 hs.hotkey.bind(["cmd", "alt", "ctrl"], "i", toggleChatGPT, null, null);
