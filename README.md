@@ -13,6 +13,7 @@ coding agents.
 | `lima/` | Dev VM definition and provisioning | used in place | host |
 | `zsh/` | Shell, p10k prompt | sourced from `~/.zshrc`, `~/.p10k.zsh` | VM |
 | `tmux/` | tmux config and session helpers | `~/.config/tmux` | VM |
+| `agenmux/` | agenmux sidebar settings | `~/.config/agenmux/config.toml` | VM |
 | `nvim/` | Neovim config | `~/.config/nvim` | VM |
 | `pi/` | Pi settings, themes and skills | `~/.pi/agent/*` | VM |
 | `bin/` | Utilities, each described in its header | `~/bin` | both |

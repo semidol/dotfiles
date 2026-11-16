@@ -1,0 +1,13 @@
+# agenmux application configuration, shared by tmux and Rex.
+# Symlinked to ~/.config/agenmux/config.toml; agenmux resolves the link when it
+# saves from the in-sidebar settings editor, so edits stay in this file.
+# Validate with `agenmux config check`, apply with `agenmux config reload`.
+version = 1
+
+[display]
+# Agents only: the same view as pressing `.` in the sidebar. Ordinary panes,
+# windows without agents, and sessions without agents stay hidden.
+show_all_panes = false
+# Dock to the right edge. The default `l` jump swaps to `h` automatically.
+sidebar_position = "right"
+sidebar_width = 24

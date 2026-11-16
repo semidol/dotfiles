@@ -25,6 +25,10 @@ link_configs() {
 
   ln -sfn "${DOTFILES}/nvim" "${CONFIG}/nvim"
   ln -sfn "${DOTFILES}/tmux" "${CONFIG}/tmux"
+  # Only the file is linked: ~/.config/agenmux also holds per-agent .conf
+  # overrides, which stay local.
+  mkdir -p "${CONFIG}/agenmux"
+  ln -sf "${DOTFILES}/agenmux/config.toml" "${CONFIG}/agenmux/config.toml"
   ln -sf "${DOTFILES}/zsh/.p10k.zsh" "${HOME}/.p10k.zsh"
   ln -sfn "${DOTFILES}/bin" "${HOME}/bin"
 }
