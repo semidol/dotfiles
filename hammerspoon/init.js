@@ -8,7 +8,7 @@ const AEROSPACE =
 	'export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; aerospace ';
 
 const panes = [
-	{ key: "i", title: "ChatGPT", url: "https://chatgpt.com/" },
+	{ key: "i", title: "ChatGPT", url: "https://chatgpt.com/", side: "right" },
 	{ key: "u", title: "Translate", url: "https://translate.yandex.com/" },
 ];
 
@@ -42,21 +42,27 @@ function paneLocation(title) {
 	});
 }
 
-function createPane(pane) {
+// A third of the screen, on the left by default.
+function paneFrame(pane) {
 	const frame = hs.screen.main().frame;
+	const width = Math.floor(frame.w / 3);
 
+	return {
+		x: pane.side === "right" ? frame.x + frame.w - width : frame.x,
+		y: frame.y,
+		w: width,
+		h: frame.h,
+	};
+}
+
+function createPane(pane) {
 	const webview = hs.ui
 		.webview()
 		.toolbar(["back", "forward", "reload", "url"])
 		.loadURL(pane.url);
 
 	pane.win = hs.ui
-		.window({
-			x: frame.x,
-			y: frame.y,
-			w: Math.floor(frame.w / 3),
-			h: frame.h,
-		})
+		.window(paneFrame(pane))
 		.windowTitle(pane.title)
 		.level("floating")
 		.webview(webview)
