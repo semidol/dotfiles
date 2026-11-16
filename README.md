@@ -9,7 +9,7 @@ coding agents.
 | --- | --- | --- | --- |
 | `aerospace/` | Tiling window manager | `~/.aerospace.toml` | host |
 | `wezterm/` | Terminal | `~/.wezterm.lua` | host |
-| `hammerspoon/` | floating web apps | `~/.config/hammerspoon2` (v2), `~/.hammerspoon` (v1) | host |
+| `hammerspoon/` | floating web apps | `~/.config/hammerspoon2` | host |
 | `lima/` | Dev VM definition and provisioning | used in place | host |
 | `zsh/` | Shell, p10k prompt | sourced from `~/.zshrc`, `~/.p10k.zsh` | VM |
 | `tmux/` | tmux config and session helpers | `~/.config/tmux` | VM |
@@ -33,13 +33,12 @@ ln -sfn ~/dotfiles/hammerspoon ~/.config/hammerspoon2
 ln -sfn ~/dotfiles/bin ~/bin
 ```
 
-Hammerspoon: `init.js` is the Hammerspoon 2 config, `init.lua` the old
-Hammerspoon 1 one; run only one of them, they bind the same hotkey. Hammerspoon
-2 asks for its config directory on first launch — point it at
+Hammerspoon 2 asks for its config directory on first launch — point it at
 `~/dotfiles/hammerspoon` (or symlink it there as above; `hs.appinfo.configDir`
 shows the path it actually uses). Its embedded web view needs macOS 26+.
 
-Both versions bind Cmd+Alt+Ctrl+I to a floating ChatGPT pane pinned to the left
-third of the screen. The v1 pane looks like a utility window; the v2 one is a
-normal titled window whose toolbar carries back/forward/reload and the URL bar.
-The URL bar wants a full address, with the scheme.
+Cmd+Alt+Ctrl+I toggles a floating ChatGPT pane in the right third of the screen,
+Cmd+Alt+Ctrl+U a Yandex Translate pane in the left third. Each window's toolbar
+carries back/forward/reload and a URL bar, which wants a full address with the
+scheme. AeroSpace is asked to move the pane to the current workspace, so it
+opens in front of whatever work is on screen.
