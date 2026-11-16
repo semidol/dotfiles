@@ -25,6 +25,9 @@ function toggleChatGPT() {
 			})
 			.windowTitle("ChatGPT")
 			.level("floating")
+			// AeroSpace treats windows of accessory apps without a close button
+			// as popups and leaves them alone: no workspace binding, no tiling.
+			.closable(false)
 			.webview(webview)
 			.onHide(() => {
 				visible = false;
