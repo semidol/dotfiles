@@ -27,6 +27,7 @@
     }
   ],
   "editorPaddingX": 1,
+  "externalEditor": "nvim",
   "enabledModels": [
     "kimi-coding/k3.1-pro:low",
     "opencode-go/gemini-4-argon:high",
