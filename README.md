@@ -10,6 +10,7 @@ coding agents.
 | `aerospace/` | Tiling window manager | `~/.aerospace.toml` | host |
 | `wezterm/` | Terminal | `~/.wezterm.lua` | host |
 | `hammerspoon/` | floating web apps | `~/.config/hammerspoon2` | host |
+| `keyboard/` | keyboard tooling: Karabiner (hyper on right Command, Control ⇄ fn, Caps Lock → Esc) | `~/.config/karabiner`, `~/dotfiles/keyboard` | host |
 | `lima/` | Dev VM definition and provisioning | used in place | host |
 | `zsh/` | Shell, p10k prompt | sourced from `~/.zshrc`, `~/.p10k.zsh` | VM |
 | `tmux/` | tmux config and session helpers | `~/.config/tmux` | VM |
@@ -31,7 +32,12 @@ Host: no installer, symlink the host configs by hand:
 ln -sf ~/dotfiles/aerospace/.aerospace.toml ~/.aerospace.toml
 ln -sf ~/dotfiles/wezterm/.wezterm.lua ~/.wezterm.lua
 ln -sfn ~/dotfiles/bin ~/bin
+ln -sfn ~/dotfiles/keyboard/karabiner/complex-modifications.json \
+  ~/.config/karabiner/assets/complex_modifications/complex-modifications.json
 ```
+
+Karabiner's complex modification is enabled once by hand in its UI; see
+[keyboard/README.md](keyboard/README.md).
 
 Hammerspoon 2 asks for its config directory on first launch — point it straight
 at `~/dotfiles/hammerspoon` (`hs.appinfo.configDir` shows the path it actually
